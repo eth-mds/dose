@@ -142,7 +142,7 @@ si <- si[si_time > hours(-12), data.table::first(.SD), by = c(id(si))]
 dat <- load_dictionary(source, c(names(cfg), "death"),
                        patient_ids = unique(si[[id(si)]]))
 
-dat <- dat[, tmptime := get(index(dat))]
+dat <- dat[, c("tmptime") := get(index(dat))]
 dat <- dat[si, on = c(id(dat), "tmptime >= si_lwr", "tmptime <= si_upr"),
            nomatch = 0]
 
