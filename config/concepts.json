@@ -1,0 +1,254 @@
+{
+  "alanine_aminotransferase": {
+    "direction": "increasing",
+    "lower": 36,
+    "upper": 250,
+    "step": 5
+  },
+  "alkaline_phosphatase": {
+    "direction": "increasing",
+    "lower": 104,
+    "upper": 500,
+    "step": 20
+  },
+  "asparate_aminotransferase": {
+    "direction": "increasing",
+    "lower": 47,
+    "upper": 250,
+    "step": 5
+  },
+  "basophils": {
+    "direction": "decreasing",
+    "lower": 0,
+    "upper": 0.2,
+    "step": 0.01
+  },
+  "bicarbonate": {
+    "direction": "decreasing",
+    "lower": 7,
+    "upper": 24,
+    "step": 1
+  },
+  "bilirubin_total": {
+    "direction": "increasing",
+    "lower": 1,
+    "upper": 30,
+    "step": 1
+  },
+  "calcium": {
+    "direction": "decreasing",
+    "lower": 4.9,
+    "upper": 10.3,
+    "step": 0.2
+  },
+  "calcium_ionized": {
+    "direction": "decreasing",
+    "lower": 0.6,
+    "upper": 1.15,
+    "step": 0.1
+  },
+  "calculated_total_co2": {
+    "direction": "decreasing",
+    "lower": 7,
+    "upper": 25,
+    "step": 1
+  },
+  "chloride": {
+    "direction": "decreasing",
+    "lower": 80,
+    "upper": 104,
+    "step": 2
+  },
+  "creatinine": {
+    "direction": "increasing",
+    "lower": 1.1,
+    "upper": 14,
+    "step": 1
+  },
+  "diastolic_bp": {
+    "direction": "decreasing",
+    "lower": 20,
+    "upper": 80,
+    "step": 5
+  },
+  "eosinophils": {
+    "direction": "decreasing",
+    "lower": 0,
+    "upper": 1,
+    "step": 0.05
+  },
+  "fi_o2": {
+    "direction": "increasing",
+    "lower": 35,
+    "upper": 100,
+    "step": 5
+  },
+  "heart_rate": {
+    "direction": "increasing",
+    "lower": 50,
+    "upper": 120,
+    "step": 5
+  },
+  "hematocrit": {
+    "direction": "decreasing",
+    "lower": 15,
+    "upper": 30,
+    "step": 1
+  },
+  "hemoglobin": {
+    "direction": "decreasing",
+    "lower": 7,
+    "upper": 10,
+    "step": 0.1
+  },
+  "inr_pt": {
+    "direction": "increasing",
+    "lower": 1.1,
+    "upper": 4,
+    "step": 0.3
+  },
+  "lactate": {
+    "direction": "increasing",
+    "lower": 1,
+    "upper": 20,
+    "step": 1
+  },
+  "lymphocytes": {
+    "direction": "decreasing",
+    "lower": 0,
+    "upper": 12,
+    "step": 0.5
+  },
+  "magnesium": {
+    "direction": "increasing",
+    "lower": 2,
+    "upper": 4.3,
+    "step": 0.1
+  },
+  "mch": {
+    "direction": "increasing",
+    "lower": 30,
+    "upper": 40,
+    "step": 0.1
+  },
+  "mchc": {
+    "direction": "decreasing",
+    "lower": 27.6,
+    "upper": 33.6,
+    "step": 0.3
+  },
+  "mcv": {
+    "direction": "increasing",
+    "lower": 90,
+    "upper": 125,
+    "step": 1
+  },
+  "mean_bp": {
+    "direction": "decreasing",
+    "lower": 40,
+    "upper": 75,
+    "step": 5
+  },
+  "neutrophils": {
+    "direction": "increasing",
+    "lower": 0,
+    "upper": 80.6,
+    "step": 5
+  },
+  "o2_saturation": {
+    "direction": "decreasing",
+    "lower": 80,
+    "upper": 100,
+    "step": 1
+  },
+  "pa_co2": {
+    "direction": "decreasing",
+    "lower": 16,
+    "upper": 40,
+    "step": 2
+  },
+  "pa_o2": {
+    "direction": "decreasing",
+    "lower": 55,
+    "upper": 105,
+    "step": 2
+  },
+  "ph": {
+    "direction": "decreasing",
+    "lower": 6.9,
+    "upper": 7.4,
+    "step": 0.2
+  },
+  "phosphate": {
+    "direction": "increasing",
+    "lower": 3.4,
+    "upper": 12.4,
+    "step": 0.5
+  },
+  "platelet_count": {
+    "direction": "decreasing",
+    "lower": 10,
+    "upper": 150,
+    "step": 5
+  },
+  "potassium": {
+    "direction": "increasing",
+    "lower": 4,
+    "upper": 8.4,
+    "step": 0.2
+  },
+  "prothrombine_time": {
+    "direction": "increasing",
+    "lower": 14,
+    "upper": 40,
+    "step": 0.5
+  },
+  "ptt": {
+    "direction": "increasing",
+    "lower": 40,
+    "upper": 95,
+    "step": 5
+  },
+  "rdw": {
+    "direction": "increasing",
+    "lower": 15,
+    "upper": 28,
+    "step": 1
+  },
+  "red_blood_cells": {
+    "direction": "decreasing",
+    "lower": 1.58,
+    "upper": 3.33,
+    "step": 0.1
+  },
+  "respiratory_rate": {
+    "direction": "increasing",
+    "lower": 14,
+    "upper": 30,
+    "step": 2
+  },
+  "sodium": {
+    "direction": "decreasing",
+    "lower": 115,
+    "upper": 140,
+    "step": 2
+  },
+  "systolic_bp": {
+    "direction": "decreasing",
+    "lower": 70,
+    "upper": 120,
+    "step": 5
+  },
+  "urea_nitrogen": {
+    "direction": "increasing",
+    "lower": 15,
+    "upper": 50,
+    "step": 5
+  },
+  "white_blood_cells": {
+    "direction": "increasing",
+    "lower": 10,
+    "upper": 35,
+    "step": 1
+  }
+}
