@@ -1,5 +1,5 @@
 
-packages <- c("ricu", "rprojroot", "assertthat")
+packages <- c("ricu", "rprojroot", "assertthat", "precrec", "ggplot2")
 
 installed <- packages %in% installed.packages()
 

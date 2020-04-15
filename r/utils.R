@@ -11,3 +11,10 @@ aggreg_fun <- function(cfg, inc = "max", dec = "min") {
 
   ifelse(dir == "increasing", inc, dec)
 }
+
+si_cohort <- function(source, ...) {
+
+  sus_inf <- si(source, id_type = "icustay", ...)
+
+  unique(sus_inf[[id(sus_inf)]])
+}
