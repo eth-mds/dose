@@ -40,7 +40,7 @@ preproc <- function(dat, cfg, win_lwr = hours(-Inf),
 
 #' Convert to indicator encoded data
 #'
-#' Turn an `id_tbl` containing numeric data columns object into an indicator
+#' Turn an `id_tbl` object containing numeric data columns into an indicator
 #' encoded `id_tbl` object consisting of logical columns according to intervals
 #' as specified by the configuration list passed as `cfg`. Each slot in `cfg`
 #' is expected to contain an entry for `direction`, alongside a discretization

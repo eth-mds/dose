@@ -131,20 +131,20 @@ cfg <- list(
   )
 )
 
-source <- "mimic_demo"
+src <- "mimic_demo"
 max_step <- 30
 
-si <- si_data(source)
-si <- si_windows(si)
+dat <- load_dictionary(src, c(names(cfg), "death"), id_type = "icustay",
+                       patient_ids = si_cohort(src))
 
-si <- si[si_time > hours(-12), data.table::first(.SD), by = c(id(si))]
-
-dat <- load_dictionary(source, c(names(cfg), "death"),
-                       patient_ids = unique(si[[id(si)]]))
+win <- stay_windows(src, id_type = "icustay", win_type = "icustay",
+                    in_time = "intime", out_time = "outtime")
+win <- win[, c("intime") := get("outtime") - hours(24L)]
 
 dat <- dat[, c("tmptime") := get(index(dat))]
-dat <- dat[si, on = c(id(dat), "tmptime >= si_lwr", "tmptime <= si_upr"),
-           nomatch = 0]
+joi <- c(paste(id(dat), "==", id(win)), "tmptime >= intime",
+         "tmptime <= outtime")
+dat <- dat[win, on = joi, nomatch = NULL]
 
 dir <- dat[, lapply(.SD, mean, na.rm = TRUE), by = "death",
            .SDcols = names(cfg)]
