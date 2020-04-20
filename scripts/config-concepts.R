@@ -131,6 +131,8 @@ cfg <- list(
   )
 )
 
+count_steps <- function(x) (x[["upper"]] - x[["lower"]]) / x[["step"]]
+
 src <- "mimic_demo"
 max_step <- 30
 
@@ -159,8 +161,6 @@ if (length(failed)) {
   message("for the following features, the direction does not agree with ",
           "data:\n  * ", paste0("`", failed, "`", collapse = "\n  * "))
 }
-
-count_steps <- function(x) (x[["upper"]] - x[["lower"]]) / x[["step"]]
 
 n_steps <- vapply(cfg, count_steps, numeric(1L))
 

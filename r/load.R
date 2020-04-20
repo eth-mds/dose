@@ -54,37 +54,52 @@ preproc <- function(dat, cfg, win_lwr = hours(-Inf),
 #'
 indicator_encoding <- function(dat, cfg) {
 
-  encode <- function(x, sequ, is_inc, name) {
+  encode <- function(x, sequ, is_inc, name, len) {
 
-    ival <- cut(x, sequ, right = is_inc)
-    lvls <- as.integer(ival)
-
-    res <- matrix(FALSE, nrow = length(ival), ncol = nlevels(ival),
-                  dimnames = list(NULL, levels(ival)))
-
-    if (is_inc) {
-      seq_fun <- function(i) seq.int(1L, i)
-      res[!is.na(x) & x >= cfg[["upper"]], ] <- TRUE
+    if (is.null(x)) {
+      ival <- cut(sequ, sequ, right = !is_inc)
     } else {
-      seq_fun <- function(i) seq.int(i, ncol(res))
-      res[!is.na(x) & x <= cfg[["lower"]], ] <- TRUE
+      ival <- cut(x, sequ, right = !is_inc)
     }
 
-    for (i in seq_len(nlevels(ival))) {
-      res[!is.na(lvls) & lvls == i, seq_fun(i)] <- TRUE
+    if (is_inc) {
+      col_names <- sub(",\\d+(\\.\\d+)?\\)$", ",Inf)", levels(ival))
+    } else {
+      col_names <- sub("^\\(\\d+(\\.\\d+)?,", "(-Inf,", levels(ival))
+    }
+
+    res <- matrix(FALSE, nrow = len, ncol = nlevels(ival),
+                  dimnames = list(NULL, col_names))
+
+    if (!is.null(x)) {
+
+      if (is_inc) {
+        seq_fun <- function(i) seq.int(1L, i)
+        res[!is.na(x) & x >= cfg[["upper"]], ] <- TRUE
+      } else {
+        seq_fun <- function(i) seq.int(i, ncol(res))
+        res[!is.na(x) & x <= cfg[["lower"]], ] <- TRUE
+      }
+
+      lvls <- as.integer(ival)
+
+      for (i in seq_len(nlevels(ival))) {
+        res[!is.na(lvls) & lvls == i, seq_fun(i)] <- TRUE
+      }
     }
 
     res <- asplit(res, 2L)
     res <- lapply(res, `dimnames<-`, NULL)
     res <- lapply(res, `attr<-`, "concept", name)
-    res <- Map(`attr<-`, res, "range", Map(c, sequ[-length(sequ)], sequ[-1]))
+    res <- Map(`attr<-`, res, "threshold",
+               if (is_inc) sequ[-length(sequ)] else sequ[-1])
     res <- lapply(res, `attr<-`, "right", is_inc)
 
     res
   }
 
-  assert_that(is_ts_tbl(dat), is.list(cfg),
-              setequal(names(cfg), data_cols(dat)))
+  assert_that(is_id_tbl(dat), is.list(cfg),
+              all(data_cols(dat) %in% names(cfg)))
 
   seqs <- Map(seq,
     vapply(cfg, `[[`, numeric(1L), "lower"),
@@ -92,8 +107,8 @@ indicator_encoding <- function(dat, cfg) {
     vapply(cfg, `[[`, numeric(1L), "step")
   )
 
-  res <- Map(encode, dat[, names(cfg), with = FALSE],
-             seqs, aggreg_fun(cfg, TRUE, FALSE), names(cfg))
+  res <- Map(encode, c(dat)[names(cfg)], seqs, aggreg_fun(cfg, TRUE, FALSE),
+             names(cfg), nrow(dat))
 
   res <- data.table::setDT(unlist(res, recursive = FALSE))
   res <- cbind(dat[[id(dat)]], res)
