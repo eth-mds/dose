@@ -128,6 +128,33 @@ cfg <- list(
   ),
   white_blood_cells = list(
     direction = "increasing", lower = 10, upper = 35, step = 1
+  ),
+  albumin = list(
+    direction = "decreasing", lower = 0.1, upper = 1.8, step = 0.1
+  ),
+  base_excess = list(
+    direction = "decreasing", lower = -20, upper = 5, step = 1
+  ),
+  bilirubin_direct = list(
+    direction = "increasing", lower = 1, upper = 30, step = 1
+  ),
+  c_reactive_protein = list(
+    direction = "increasing", lower = 50, upper = 1000, step = 25
+  ),
+  creatine_kinase = list(
+    direction = "increasing", lower = 100, upper = 2000, step = 50
+  ),
+  fibrinogen = list(
+    direction = "decreasing", lower = 40, upper = 200, step = 5
+  ),
+  temperature = list(
+    direction = "increasing", lower = 37.5, upper = 40.5, step = 0.1
+  ),
+  troponin_i = list(
+    direction = "increasing", lower = 4, upper = 10, step = 0.25
+  ),
+  troponin_t = list(
+    direction = "increasing", lower = 0.5, upper = 3, step = 0.1
   )
 )
 
