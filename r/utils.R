@@ -48,8 +48,8 @@ score2table <- function(score) {
   tbl <- cbind(Feature = attr(score, "concept"),
                Points = score)
 
-  rownames(tbl) <- paste(ifelse(attr(score, "right"), ">=", "<"),
-                                attr(score, "threshold"))
+  rownames(tbl) <- paste(ifelse(attr(score, "right"), "&ge;", "&lt;"),
+                                     attr(score, "threshold"))
 
   res <- kableExtra::kable(tbl[score > 0, 2L, drop = FALSE])
 

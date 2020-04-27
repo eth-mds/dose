@@ -35,7 +35,7 @@ Points
 </tr>
 <tr>
 <td style="text-align:left; padding-left: 2em;" indentlevel="1">
-&gt;= 62
+&ge; 62
 </td>
 <td style="text-align:left;">
 1
@@ -43,7 +43,7 @@ Points
 </tr>
 <tr>
 <td style="text-align:left; padding-left: 2em;" indentlevel="1">
-&gt;= 67
+&ge; 67
 </td>
 <td style="text-align:left;">
 2
@@ -85,7 +85,7 @@ Points
 </tr>
 <tr>
 <td style="text-align:left; padding-left: 2em;" indentlevel="1">
-&gt;= 2
+&ge; 2
 </td>
 <td style="text-align:left;">
 1
@@ -93,7 +93,7 @@ Points
 </tr>
 <tr>
 <td style="text-align:left; padding-left: 2em;" indentlevel="1">
-&gt;= 7
+&ge; 7
 </td>
 <td style="text-align:left;">
 8
@@ -127,7 +127,7 @@ Points
 </tr>
 <tr>
 <td style="text-align:left; padding-left: 2em;" indentlevel="1">
-&gt;= 1.1
+&ge; 1.1
 </td>
 <td style="text-align:left;">
 1
@@ -153,7 +153,7 @@ Points
 </tr>
 <tr>
 <td style="text-align:left; padding-left: 2em;" indentlevel="1">
-&gt;= 4
+&ge; 4
 </td>
 <td style="text-align:left;">
 1
@@ -161,7 +161,7 @@ Points
 </tr>
 <tr>
 <td style="text-align:left; padding-left: 2em;" indentlevel="1">
-&gt;= 5
+&ge; 5
 </td>
 <td style="text-align:left;">
 4
@@ -169,7 +169,7 @@ Points
 </tr>
 <tr>
 <td style="text-align:left; padding-left: 2em;" indentlevel="1">
-&gt;= 7
+&ge; 7
 </td>
 <td style="text-align:left;">
 3
@@ -177,7 +177,7 @@ Points
 </tr>
 <tr>
 <td style="text-align:left; padding-left: 2em;" indentlevel="1">
-&gt;= 9
+&ge; 9
 </td>
 <td style="text-align:left;">
 2
@@ -253,7 +253,7 @@ Points
 </tr>
 <tr>
 <td style="text-align:left; padding-left: 2em;" indentlevel="1">
-&gt;= 3.9
+&ge; 3.9
 </td>
 <td style="text-align:left;">
 3
@@ -261,7 +261,7 @@ Points
 </tr>
 <tr>
 <td style="text-align:left; padding-left: 2em;" indentlevel="1">
-&gt;= 4.9
+&ge; 4.9
 </td>
 <td style="text-align:left;">
 4
@@ -295,7 +295,7 @@ Points
 </tr>
 <tr>
 <td style="text-align:left; padding-left: 2em;" indentlevel="1">
-&gt;= 18.5
+&ge; 18.5
 </td>
 <td style="text-align:left;">
 3
@@ -308,7 +308,7 @@ Points
 </tr>
 <tr>
 <td style="text-align:left; padding-left: 2em;" indentlevel="1">
-&gt;= 17
+&ge; 17
 </td>
 <td style="text-align:left;">
 1
@@ -316,7 +316,7 @@ Points
 </tr>
 <tr>
 <td style="text-align:left; padding-left: 2em;" indentlevel="1">
-&gt;= 18
+&ge; 18
 </td>
 <td style="text-align:left;">
 2
@@ -324,7 +324,7 @@ Points
 </tr>
 <tr>
 <td style="text-align:left; padding-left: 2em;" indentlevel="1">
-&gt;= 19
+&ge; 19
 </td>
 <td style="text-align:left;">
 5
