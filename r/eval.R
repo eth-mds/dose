@@ -15,8 +15,6 @@
 #'
 dose_eval <- function(scores, dat, label = "death") {
 
-  merge_two <- function(x, y) merge(x, y, by = c(id(x), label), all = TRUE)
-
   eval_score <- function(score, name, dat, label) {
 
     eval_one <- function(dat, name) {
@@ -36,7 +34,7 @@ dose_eval <- function(scores, dat, label = "death") {
     if (is_id_tbl(dat)) {
       eval_one(dat, name)
     } else {
-      Reduce(merge_two, Map(eval_one, dat, paste(name, names(dat))))
+      Reduce(merge_all, Map(eval_one, dat, paste(name, names(dat))))
     }
   }
 
@@ -53,7 +51,7 @@ dose_eval <- function(scores, dat, label = "death") {
     }
   }
 
-  Reduce(merge_two,
+  Reduce(merge_all,
     Map(eval_score, scores, names(scores), MoreArgs = list(dat, label))
   )
 }
@@ -102,7 +100,7 @@ sofa_eval <- function(src, upr, cohort = si_cohort(src)) {
   res <- Map(extract_score, res,
              paste0("SOFA [", format(unt - 24L), ", ", format(unt), "]"))
 
-  Reduce(merge_two, c(res, list(out)))
+  Reduce(merge_all, c(res, list(out)))
 }
 
 #' Calculate ROC/PR
@@ -137,3 +135,30 @@ eval_score <- function(dat, label = "death", n_rep = 10L, frac = 0.75) {
                    modnames = rep(scores, n_rep),
                    dsids = rep(seq_len(n_rep), each = length(scores)))
 }
+
+merge_all <- function(x, y) merge_cols(x, y, all = TRUE)
+
+merge_cols <- function(x, y, ...) {
+
+  non_id_cols <- function(z) setdiff(colnames(z), id(z))
+
+  common <- intersect(non_id_cols(x), non_id_cols(y))
+  suffix <- c(".x", ".y")
+
+  res <- merge(x, y, ..., suffixes = suffix)
+
+  if (length(common) > 0L) {
+
+    for (col in (common)) {
+
+      cols <- paste0(col, suffix)
+
+      assert_that(identical(res[[cols[1L]]], res[[cols[2L]]]))
+
+      res[, c(col, cols) := list(get(cols[1L]), NULL, NULL)]
+    }
+  }
+
+  res
+}
+
