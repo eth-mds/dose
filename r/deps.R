@@ -1,5 +1,6 @@
 
-packages <- c("ricu", "rprojroot", "assertthat", "precrec", "ggplot2")
+packages <- c("ricu", "rprojroot", "assertthat", "precrec", "ggplot2",
+              "kableExtra", "cowplot")
 
 installed <- packages %in% installed.packages()
 
@@ -8,4 +9,5 @@ if (any(!installed)) {
 }
 
 library(assertthat)
+library(ggplot2)
 library(ricu)

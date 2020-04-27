@@ -1,4 +1,56 @@
 
+#' Load preprocessed data
+#'
+#' For a given data source (alongside a config file, and a cohort) and for a
+#' single time window or multiple time windows returns preprocessed data. The
+#' Returned data first is preprocessed by [preproc()] and subsequently
+#' indicator encoded, using [indicator_encoding()]. Finally the `death`
+#' outcome is merged in.
+#'
+#' @param src String valued data source
+#' @param cfg A named list containing a slot per data column, each with
+#' entries `direction`, `upper`, `lower` and `step`
+#' @param lwr,upr Lower and upper bound of data windows; the length of one has
+#' to be a multiple of the other
+#' @param cohort Vector of patient ids
+#'
+#' @return Either a single or a list of `id_tbl` objects, depending on whether
+#' a single or multiple time windows were specified.
+#'
+load_data <- function(src, cfg, lwr, upr, cohort = si_cohort(src)) {
+
+  load_win <- function(lwr, upr, cfg, dat, out) {
+
+    dat <- preproc(dat, cfg, lwr, upr)
+    dat <- indicator_encoding(dat, cfg)
+
+    merge(dat, out, all = FALSE)
+  }
+
+  load_wins <- function(lwr, upr, cfg, dat, out) {
+    Map(function(a, b) {
+      load_win(as.difftime(a, units = units(lwr)),
+               as.difftime(b, units = units(upr)), cfg, dat, out)
+    }, lwr, upr)
+  }
+
+  dat <- load_dictionary(src, names(cfg), aggregate = aggreg_fun(cfg),
+                         id_type = "icustay", patient_ids = cohort)
+  out <- load_dictionary(src, "death", id_type = "icustay",
+                         patient_ids = cohort)
+
+  res <- load_wins(lwr, upr, cfg, dat, out)
+
+  names(res) <- paste0(ifelse(is.finite(lwr), "[", "("), format(lwr), ", ",
+                       format(upr), ifelse(is.finite(upr), "]", ")"))
+
+  if (length(res) == 1L) {
+    res <- res[[1L]]
+  }
+
+  res
+}
+
 #' Data preprocessing
 #'
 #' Fist, rows are filtered out where the index is strictly smaller than the
@@ -26,7 +78,9 @@ preproc <- function(dat, cfg, win_lwr = hours(-Inf),
   repl_na <- function(x, val) replace(x, is.na(x), val)
 
   assert_that(is_ts_tbl(dat), is_time(win_lwr), is_time(win_upr),
-              is.list(cfg), setequal(names(cfg), data_cols(dat)))
+              is.list(cfg), all(data_cols(dat) %in% names(cfg)))
+
+  cfg <- cfg[data_cols(dat)]
 
   agg <- aggreg_fun(cfg, list(max_or_na), list(min_or_na))
   med <- lapply(dat[, names(cfg), with = FALSE], median, na.rm = TRUE)
@@ -109,6 +163,7 @@ indicator_encoding <- function(dat, cfg) {
 
   res <- Map(encode, c(dat)[names(cfg)], seqs, aggreg_fun(cfg, TRUE, FALSE),
              names(cfg), nrow(dat))
+  names(res) <- names(cfg)
 
   res <- data.table::setDT(unlist(res, recursive = FALSE))
   res <- cbind(dat[[id(dat)]], res)
