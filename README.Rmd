@@ -74,7 +74,7 @@ aucs <- aucs[, c("lwr", "upr") := list(mean - sd, mean + sd)]
 ggplot(aucs, aes(x = modnames, y = mean)) +
   geom_point() +
   geom_errorbar(aes(ymin = lwr, ymax = upr)) +
-  facet_grid(rows = vars(curvetypes)) +
+  facet_grid(rows = vars(curvetypes), scales = "free_y") +
   theme_bw() +
   ylab("Mean AUC") + xlab(element_blank()) +
   theme(axis.text.x = element_text(angle = 30, hjust = 1))
@@ -102,7 +102,7 @@ aucs <- aucs[, c("type", "time") := list(sub(" .+", "", modnames),
 ggplot(aucs, aes(x = time, y = mean, color = type, fill = type)) +
   geom_line() +
   geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.3, linetype = 0) +
-  facet_grid(rows = vars(curvetypes)) +
+  facet_grid(rows = vars(curvetypes), scales = "free_y") +
   theme_bw() +
   xlab("Hours in ICU") + ylab("Mean AUC") +
   theme(legend.position = "bottom") +
