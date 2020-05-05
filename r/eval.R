@@ -153,6 +153,8 @@ merge_cols <- function(x, y, ...) {
 
       cols <- paste0(col, suffix)
 
+      if (!identical(res[[cols[1L]]], res[[cols[2L]]])) browser()
+
       assert_that(identical(res[[cols[1L]]], res[[cols[2L]]]))
 
       res[, c(col, cols) := list(get(cols[1L]), NULL, NULL)]

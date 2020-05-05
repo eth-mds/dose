@@ -1,6 +1,6 @@
 
 packages <- c("ricu", "rprojroot", "assertthat", "precrec", "ggplot2",
-              "kableExtra", "cowplot")
+              "kableExtra", "cowplot", "doMC", "glmnet")
 
 installed <- packages %in% installed.packages()
 

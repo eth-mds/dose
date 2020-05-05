@@ -45,7 +45,17 @@ load_data <- function(src, cfg, lwr, upr, cohort = si_cohort(src)) {
                        format(upr), ifelse(is.finite(upr), "]", ")"))
 
   if (length(res) == 1L) {
+
     res <- res[[1L]]
+
+  } else {
+
+    ids <- Map(`[[`, res, lapply(res, id))
+    ids <- Reduce(intersect, ids)
+    res <- lapply(res, function(x) x[get(id(x)) %in% ids])
+    ids <- Map(`[[`, res, lapply(res, id))
+
+    assert_that(all(vapply(ids, identical, logical(1L), ids[[1L]])))
   }
 
   res
