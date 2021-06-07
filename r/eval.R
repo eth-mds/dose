@@ -25,7 +25,7 @@ dose_eval <- function(scores, dat, label = "death") {
         as.matrix(dat[, names(score), with = FALSE]) %*% score
       )
 
-      res <- dat[, c(id(dat), label), with = FALSE]
+      res <- dat[, c(id_var(dat), label), with = FALSE]
       res <- res[, c(name) := score]
 
       res
@@ -72,11 +72,11 @@ dose_eval <- function(scores, dat, label = "death") {
 #' @return An `id_tbl` with columns per SOFA time-point, potentially merged
 #' with the object passed as `cohort` argument.
 #'
-sofa_eval <- function(src, upr, cohort = si_cohort(src)) {
+sofa_eval <- function(src, res, upr, cohort = si_cohort(src)) {
 
   extract_score <- function(x, name) {
-    x <- x[, c(id(x), "sofa_score"), with = FALSE]
-    x <- rename_cols(x, name, "sofa_score")
+    x <- x[, c(id_var(x), "sofa"), with = FALSE]
+    x <- rename_cols(x, name, "sofa")
     x
   }
 
@@ -84,23 +84,26 @@ sofa_eval <- function(src, upr, cohort = si_cohort(src)) {
 
   if (is_id_tbl(cohort)) {
     out    <- cohort
-    cohort <- out[[id(out)]]
+    cohort <- out[[id_var(out)]]
   } else {
-    out <- load_dictionary(src, "death", id_type = "icustay",
-                           patient_ids = cohort)
+    out <- load_concepts("death", src, patient_ids = cohort)
+    out[, c(index_var(out)) := NULL]
   }
 
-  res <- sofa(src, id_type = "icustay", patient_ids = cohort,
-              explicit_wins = upr)
+  res <- res[get(index_var(res)) %in% upr]
+  res <- res[get(id_vars(res)) %in% cohort]
 
   unt <- time_unit(res)
-  res <- split(res, by = index(res), keep.by = FALSE)
+  res <- split(res, by = index_var(res), keep.by = FALSE)
 
   unt <- as.difftime(as.numeric(names(res)), units = unt)
   res <- Map(extract_score, res,
              paste0("SOFA [", format(unt - 24L), ", ", format(unt), "]"))
 
-  Reduce(merge_all, c(res, list(out)))
+  ret <- Reduce(merge_all, c(res, list(out)))
+  ret[, death := NULL]
+  
+  ret
 }
 
 #' Calculate ROC/PR
@@ -123,7 +126,7 @@ eval_score <- function(dat, label = "death", n_rep = 10L, frac = 0.75) {
 
   assert_that(is_id_tbl(dat), has_name(dat, label))
 
-  scores <- setdiff(names(dat), c(id(dat), label))
+  scores <- setdiff(names(dat), c(id_var(dat), label))
 
   folds  <- replicate(n_rep, sample(nrow(dat), frac * nrow(dat)),
                       simplify = FALSE)
@@ -140,7 +143,7 @@ merge_all <- function(x, y) merge_cols(x, y, all = TRUE)
 
 merge_cols <- function(x, y, ...) {
 
-  non_id_cols <- function(z) setdiff(colnames(z), id(z))
+  non_id_cols <- function(z) setdiff(colnames(z), id_var(z))
 
   common <- intersect(non_id_cols(x), non_id_cols(y))
   suffix <- c(".x", ".y")
@@ -163,4 +166,3 @@ merge_cols <- function(x, y, ...) {
 
   res
 }
-

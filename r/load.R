@@ -24,7 +24,10 @@ load_data <- function(src, cfg, lwr, upr, cohort = si_cohort(src)) {
     dat <- preproc(dat, cfg, lwr, upr)
     dat <- indicator_encoding(dat, cfg)
 
-    merge(dat, out, all = FALSE)
+    ret <- merge(dat, out, all.x = T)
+    ret[is.na(death), "death"] <- F
+
+    ret
   }
 
   load_wins <- function(lwr, upr, cfg, dat, out) {
@@ -34,10 +37,10 @@ load_data <- function(src, cfg, lwr, upr, cohort = si_cohort(src)) {
     }, lwr, upr)
   }
 
-  dat <- load_dictionary(src, names(cfg), aggregate = aggreg_fun(cfg),
-                         id_type = "icustay", patient_ids = cohort)
-  out <- load_dictionary(src, "death", id_type = "icustay",
-                         patient_ids = cohort)
+  dat <- load_concepts(names(cfg), src, aggregate = aggreg_fun(cfg),
+                       patient_ids = cohort)
+  out <- load_concepts("death", src, patient_ids = cohort)
+  out[, c(index_var(out)) := NULL]
 
   res <- load_wins(lwr, upr, cfg, dat, out)
 
@@ -50,10 +53,10 @@ load_data <- function(src, cfg, lwr, upr, cohort = si_cohort(src)) {
 
   } else {
 
-    ids <- Map(`[[`, res, lapply(res, id))
+    ids <- Map(`[[`, res, lapply(res, id_var))
     ids <- Reduce(intersect, ids)
-    res <- lapply(res, function(x) x[get(id(x)) %in% ids])
-    ids <- Map(`[[`, res, lapply(res, id))
+    res <- lapply(res, function(x) x[get(id_vars(x)[1L]) %in% ids])
+    ids <- Map(`[[`, res, lapply(res, id_var))
 
     assert_that(all(vapply(ids, identical, logical(1L), ids[[1L]])))
   }
@@ -87,19 +90,21 @@ preproc <- function(dat, cfg, win_lwr = hours(-Inf),
 
   repl_na <- function(x, val) replace(x, is.na(x), val)
 
-  assert_that(is_ts_tbl(dat), is_time(win_lwr), is_time(win_upr),
-              is.list(cfg), all(data_cols(dat) %in% names(cfg)))
+  assert_that(is_ts_tbl(dat), inherits(win_lwr, "difftime"), inherits(win_upr, "difftime"),
+              is.list(cfg), all(data_vars(dat) %in% names(cfg)))
 
-  cfg <- cfg[data_cols(dat)]
+  cfg <- cfg[data_vars(dat)]
 
   agg <- aggreg_fun(cfg, list(max_or_na), list(min_or_na))
-  med <- lapply(dat[, names(cfg), with = FALSE], median, na.rm = TRUE)
+  med <- lapply(cfg, function(x)
+    ifelse(x[["direction"]] == "increasing", x[["lower"]]*0.99, x[["upper"]]*1.01)
+  )
 
-  res <- dat[get(index(dat)) >= win_lwr & get(index(dat)) <= win_upr, ]
-  res <- res[, Map(do_call, agg, .SD), .SDcols = names(agg), by = c(id(dat))]
+  res <- dat[(get(index_var(dat)) >= win_lwr) & (get(index_var(dat)) <= win_upr), ]
+  res <- res[, Map(do_call, agg, .SD), .SDcols = names(agg), by = c(id_vars(dat))]
   res <- res[, c(names(med)) := Map(repl_na, .SD, med), .SDcols = names(med)]
 
-  as_id_tbl(res, id(dat), id_opts(dat))
+  as_id_tbl(res, id_vars(dat))
 }
 
 #' Convert to indicator encoded data
@@ -119,7 +124,6 @@ preproc <- function(dat, cfg, win_lwr = hours(-Inf),
 indicator_encoding <- function(dat, cfg) {
 
   encode <- function(x, sequ, is_inc, name, len) {
-
     if (is.null(x)) {
       ival <- cut(sequ, sequ, right = !is_inc)
     } else {
@@ -129,8 +133,10 @@ indicator_encoding <- function(dat, cfg) {
     if (is_inc) {
       col_names <- sub(",\\d+(\\.\\d+)?\\)$", ",Inf)", levels(ival))
     } else {
+      #browser()
       col_names <- sub("^\\(\\d+(\\.\\d+)?,", "(-Inf,", levels(ival))
     }
+
 
     res <- matrix(FALSE, nrow = len, ncol = nlevels(ival),
                   dimnames = list(NULL, col_names))
@@ -138,11 +144,13 @@ indicator_encoding <- function(dat, cfg) {
     if (!is.null(x)) {
 
       if (is_inc) {
+        #if(sequ[1] == 14) browser()
         seq_fun <- function(i) seq.int(1L, i)
-        res[!is.na(x) & x >= cfg[["upper"]], ] <- TRUE
+        res[!is.na(x) & x >= cfg[[name]][["upper"]], ] <- TRUE
+
       } else {
         seq_fun <- function(i) seq.int(i, ncol(res))
-        res[!is.na(x) & x <= cfg[["lower"]], ] <- TRUE
+        res[!is.na(x) & x <= cfg[[name]][["lower"]], ] <- TRUE
       }
 
       lvls <- as.integer(ival)
@@ -163,7 +171,7 @@ indicator_encoding <- function(dat, cfg) {
   }
 
   assert_that(is_id_tbl(dat), is.list(cfg),
-              all(data_cols(dat) %in% names(cfg)))
+              all(data_vars(dat) %in% names(cfg)))
 
   seqs <- Map(seq,
     vapply(cfg, `[[`, numeric(1L), "lower"),
@@ -176,8 +184,8 @@ indicator_encoding <- function(dat, cfg) {
   names(res) <- names(cfg)
 
   res <- data.table::setDT(unlist(res, recursive = FALSE))
-  res <- cbind(dat[[id(dat)]], res)
-  res <- data.table::setnames(res, "V1", id(dat))
+  res <- cbind(dat[[id_vars(dat)]], res)
+  res <- data.table::setnames(res, "V1", id_vars(dat))
 
-  as_id_tbl(res, id(dat), id_opts(dat))
+  as_id_tbl(res, id_vars(dat))
 }

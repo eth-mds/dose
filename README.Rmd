@@ -1,7 +1,7 @@
 ---
 output:
   github_document:
-    html_preview: false
+    html_preview: true
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -40,6 +40,7 @@ dose <- train_dose(train, method = dose_glm, model_ind = 14)
 ```
 
 ```{r, results = 'asis', echo = FALSE}
+dose <- train_dose(train, method = dose_rfs)
 cat(score2table(dose))
 ```
 

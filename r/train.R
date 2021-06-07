@@ -39,7 +39,7 @@ train_dose <- function(dat, response = "death", seed = 2020L,
 
   assert_that(is_id_tbl(dat), has_name(dat, response))
 
-  x <- dat[, setdiff(colnames(dat), c(id(dat), response)), with = FALSE]
+  x <- dat[, setdiff(colnames(dat), c(id_vars(dat), response)), with = FALSE]
 
   attribs <- get_attrs(x)
 
@@ -52,8 +52,8 @@ train_dose <- function(dat, response = "death", seed = 2020L,
   set_attrs(res, attribs)
 }
 
-dose_glm <- function(x, y, model_ind = NULL, coef_frac = 0.1, n_folds = 5L,
-                     n_cores = get_cores(), ...) {
+dose_glm <- function(x, y, model_ind = NULL, model_ind2 = NULL, coef_frac = 0.1, n_folds = 5L,
+                     n_cores = get_cores(), zoom_lambda = F, ...) {
 
   as_score <- function(x) round(x / min(abs(x)[abs(x) > 0]))
 
@@ -103,6 +103,18 @@ dose_glm <- function(x, y, model_ind = NULL, coef_frac = 0.1, n_folds = 5L,
     apply(coefs(fit), 2L, which_feats, coef_frac, attr(x, "concept"))
   )
 
+  if (zoom_lambda) {
+    l.max <- max(which(counts <= 20L))
+    lambda.seq <- sort(exp(seq(log(fit$lambda[1]), log(fit$lambda[l.max]), length.out = 100L)))
+
+    fit <- glmnet::cv.glmnet(x, y, family = "binomial", type.measure = "auc", lambda = lambda.seq,
+                             parallel = n_cores > 1L, nfolds = n_folds, ...)
+
+    counts <- lengths(
+      apply(coefs(fit), 2L, which_feats, coef_frac, attr(x, "concept"))
+    )
+  }
+
   if (is.null(model_ind)) {
     if (interactive()) {
       plot_glmnet(fit, counts)
@@ -117,9 +129,48 @@ dose_glm <- function(x, y, model_ind = NULL, coef_frac = 0.1, n_folds = 5L,
   plot_glmnet(fit, counts, model_ind)
 
   res <- coefs(fit)[, model_ind]
-  res[!gt_thresh(res, coef_frac)] <- 0
+  #res[!gt_thresh(res, coef_frac)] <- 0
 
-  as_score(res)
+  stage2 <- which(attr(x, "concept") %in% attr(x, "concept")[gt_thresh(res, coef_frac)])
+  print(paste("Dimension of matrix in 2nd stage", ncol(x[, stage2])))
+
+  fit2 <- glmnet::cv.glmnet(x[, stage2], y, family = "binomial", type.measure = "auc",
+                           parallel = n_cores > 1L, nfolds = n_folds, ...)
+
+  counts2 <- lengths(
+    apply(coefs(fit2), 2L, which_feats, coef_frac, attr(x, "concept")[stage2])
+  )
+
+  if (zoom_lambda) {
+    l.max2 <- max(which(counts2 <= 11L))
+    lambda.seq2 <- sort(exp(seq(log(fit2$lambda[1]), log(fit2$lambda[l.max2]), length.out = 100L)))
+
+    fit2 <- glmnet::cv.glmnet(x[, stage2], y, family = "binomial", type.measure = "auc", lambda = lambda.seq2,
+                             parallel = n_cores > 1L, nfolds = n_folds, ...)
+
+    counts2 <- lengths(
+      apply(coefs(fit2), 2L, which_feats, coef_frac, attr(x, "concept")[stage2])
+    )
+  }
+
+  if (is.null(model_ind2)) {
+    if (interactive()) {
+      plot_glmnet(fit2, counts2)
+      model_ind2 <- as.integer(readline("choose model: "))
+    } else {
+      model_ind2 <- auto_mod(fit2, counts2)
+    }
+  }
+
+  res2 <- coefs(fit2)[, model_ind2]
+  res2[!gt_thresh(res2, coef_frac)] <- 0
+
+  res <- rep(0, ncol(x))
+  names(res) <- colnames(x)
+
+  res[stage2] <- as_score(res2)
+
+  res
 }
 
 dose_rfs <- function(x, y, coef_frac = 0.1, n_folds = 5L, max_points = 24L,
