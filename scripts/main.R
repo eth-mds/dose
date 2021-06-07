@@ -3,7 +3,8 @@ library(ggplot2)
 library(assertthat)
 library(precrec)
 
-r_dir <- file.path(rprojroot::find_root(".git/index"), "r")
+root <- rprojroot::find_root(".git/index")
+r_dir <- file.path(root, "r")
 invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 
 cfg <- get_config("features", config_dir())
@@ -67,77 +68,71 @@ if (!file.exists(file.path(proj_root(), "config", "score.json"))) {
 {
   test_cohort1 <- setdiff(config("cohort")[[src[1]]], train_cohort)
   test <- load_data(src[1], cfg, times - 24L, times, cohort = test_cohort1)
-  dose_otp(test, times, dose, sofa[[src[1]]], test_cohort1, src[1]) +
-    ggtitle(srcwrap(src[1]))
   
-  ggsave(filename = file.path(proj_root(), "figures", 
-                              paste0("OTP_", src[1], ".png")),
-         width = 8, height = 8)
+  int1 <- dose_otp(test, times, dose, sofa[[src[1]]], test_cohort1, src[1]) + 
+    ggtitle(srcwrap(src[1]))
 }
 
 # evaluate outside 1st
 {
   test2 <- load_data(src[2], cfg, times - 24L, times, 
                      cohort = config("cohort")[[src[2]]])
-  dose_otp(test2, times, dose, sofa[[src[2]]], config("cohort")[[src[2]]],
-           src[2]) +
+  ext1 <- dose_otp(test2, times, dose, sofa[[src[2]]], 
+                   config("cohort")[[src[2]]], src[2]) + 
     ggtitle(srcwrap(src[2]))
-  
-  ggsave(filename = file.path(proj_root(), "figures", 
-                              paste0("OTP_", src[2], ".png")),
-         width = 8, height = 8)
 }
 
 # evaluate outside 2nd
 {
   test3 <- load_data(src[3], cfg, times - 24L, times,
                      cohort = config("cohort")[[src[3]]])
-  dose_otp(test3, times, dose, sofa[[src[3]]], config("cohort")[[src[3]]],
-           src[3]) +
+  ext2 <- dose_otp(test3, times, dose, sofa[[src[3]]], 
+                   config("cohort")[[src[3]]], src[3]) + 
     ggtitle(srcwrap(src[3]))
-  
-  ggsave(filename = file.path(proj_root(), "figures", 
-                              paste0("OTP_", src[3], ".png")),
-         width = 8, height = 8)
 }
+
+fig1 <- cowplot::plot_grid(int1, ext1, ext2, ncol = 3L)
+ggsave(file.path(root, "figures", "Figure1.tiff"), fig1,
+       width = 18, height = 8)
 
 all_test <- list(test, test2, test3)
 names(all_test) <- src
 
-fxt_test <- lapply(src, function(data_src) {
-  
-  test <- all_test[[data_src]]
-  test <- test[[length(test)]]
-  
-  merge(test, sofa[[data_src]], all.x = T)
-  
-})
+fxt_test <- lapply(
+  src, function(data_src) {
+    test <- all_test[[data_src]]
+    test <- test[[length(test)]]
+    
+    merge(test, sofa[[data_src]], all.x = T)
+  }
+)
 
 fxt_plots <- Map(dose_fxtp, fxt_test, list(score, score, score), src)
 
-aucs <- lapply(fxt_plots, function(x) {
-  
-  df <- cbind(
-    Reduce(rbind, x[["fx_roc"]]),
-    Reduce(rbind, x[["fx_prc"]])
-  )
-  colnames(df) <- c("DOSE AUROC", "SOFA AUROC", "DOSE AUPRC", "SOFA AUPRC")
-  rownames(df) <- names(x[["fx_roc"]])
-  
-  df
-})
+aucs <- lapply(
+  fxt_plots, function(x) {
+    df <- cbind(
+      Reduce(rbind, x[["fx_roc"]]),
+      Reduce(rbind, x[["fx_prc"]])
+    )
+    colnames(df) <- c("DOSE AUROC", "SOFA AUROC", "DOSE AUPRC", "SOFA AUPRC")
+    rownames(df) <- names(x[["fx_roc"]])
+    
+    df
+  }
+)
 
 names(aucs) <- src
 print(aucs)
 
-for (cp in names(score)) {
-
-  p <- cowplot::plot_grid(
+cmp <- lapply(
+  names(score),
+  function(cp) cowplot::plot_grid(
     plotlist = lapply(fxt_plots, function(x) x[["fx_plot"]][[cp]]),
     ncol = 3L
   )
-  
-  ggsave(file.path(proj_root(), "figures", paste0(cp, ".png")), plot = p, 
-         height = 5, width = 15)
+)
 
-}
+efig1 <- cowplot::plot_grid(plotlist = cmp, ncol = 1L)
+ggsave(file.path(root, "figures", "eFigure1.tiff"), plot = efig1, 
+       width = 14, height = 24)

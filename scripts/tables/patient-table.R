@@ -46,7 +46,9 @@ vars <- list(
 pts_source_sum <- function(source, patient_ids) {
   tbl_list <- lapply(
     vars,
-    function(x) x[["callback"]](load_concepts(x[["concept"]], source, patient_ids = patient_ids, keep_components = T))
+    function(x) x[["callback"]](load_concepts(x[["concept"]], source, 
+                                              patient_ids = patient_ids, 
+                                              keep_components = T))
   )
   
   pts_tbl <- Reduce(rbind,
@@ -65,7 +67,9 @@ pts_source_sum <- function(source, patient_ids) {
   )
   
   names(pts_tbl) <- c("Variable", "Reported", srcwrap(source))
-  levels(pts_tbl$Variable) <- sapply(as.character(pts_tbl$Variable), function(x) concept_translator[[x]])
+  levels(pts_tbl$Variable) <- vapply(as.character(pts_tbl$Variable), 
+                                     function(x) concept_translator[[x]],
+                                     character(1L))
   
   pts_tbl
 }
