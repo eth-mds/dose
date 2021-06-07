@@ -1,0 +1,56 @@
+{
+  "basos": {
+    "direction": ["decreasing"],
+    "lower": [0],
+    "upper": [0.2],
+    "step": [0.01],
+    "category": ["bone_marrow"],
+    "full_name": ["basophils"],
+    "unit": ["%"]
+  },
+  "eos": {
+    "direction": ["decreasing"],
+    "lower": [0],
+    "upper": [1],
+    "step": [0.05],
+    "category": ["bone_marrow"],
+    "full_name": ["eosinophils"],
+    "unit": ["%"]
+  },
+  "lymph": {
+    "direction": ["decreasing"],
+    "lower": [0],
+    "upper": [12],
+    "step": [0.5],
+    "category": ["bone_marrow"],
+    "full_name": ["lymphocytes"],
+    "unit": ["%"]
+  },
+  "neut": {
+    "direction": ["increasing"],
+    "lower": [0],
+    "upper": [80.6],
+    "step": [5],
+    "category": ["bone_marrow"],
+    "full_name": ["neutrophils"],
+    "unit": ["%"]
+  },
+  "neut_div_lymph": {
+    "direction": ["increasing"],
+    "lower": [0],
+    "upper": [80.6],
+    "step": [5],
+    "category": ["bone_marrow"],
+    "full_name": ["Neutrophils / Lymphocytes"],
+    "unit": ["%"]
+  },
+  "map": {
+    "direction": ["decreasing"],
+    "lower": [40],
+    "upper": [75],
+    "step": [5],
+    "category": ["cardio"],
+    "full_name": ["mean arterial pressure"],
+    "unit": ["mmHg", "mm Hg"]
+  }
+}

@@ -1,0 +1,143 @@
+library(ricu)
+library(ggplot2)
+library(assertthat)
+library(precrec)
+
+r_dir <- file.path(rprojroot::find_root(".git/index"), "r")
+invisible(lapply(list.files(r_dir, full.names = TRUE), source))
+
+cfg <- get_config("features", config_dir())
+
+src <- c("mimic", "aumc", "hirid")
+
+train_cohort <- sample(config("cohort")[[src[1]]], 
+                       size = round(0.75 * length(config("cohort")[[src[1]]])))
+
+times <- hours(seq.int(6, 24, 2))
+train <- load_data(src[1], cfg, times - 24L, times, cohort = train_cohort)
+
+sofa <- lapply(
+  src, function(data_src) {
+    res <- load_concepts("sofa", data_src, 
+                         explicit_wins = times, 
+                         keep_components = T, 
+                         verbose = F)
+    
+    replace_na(res, 0L)
+  }
+)
+names(sofa) <- src
+
+# train if score not available (need to nuke score)
+if (!file.exists(file.path(proj_root(), "config", "score.json"))) {
+  
+  train_time <- hours(16L)
+  train_slice <- which(times == train_time)
+  
+  sofa_slice <- sofa[[src[1]]]
+  sofa_slice <- sofa_slice[get(index_var(sofa_slice)) == train_time]
+  
+  best <- auc_optimizer(merge(train[[train_slice]], sofa_slice, all.x = T), cfg)
+
+  score <- lapply(best, `[[`, "cols")
+  score["cns"] <- NULL
+  
+  config("score", score)
+  
+} else score <- config("score")
+
+# construct the vectorized score
+{
+  train_t <- train[[1L]]
+  train_t <- train_t[, setdiff(names(train_t), c(id_vars(train_t), "death")), 
+                     with = F]
+  dose <- rep(0, ncol(train_t))
+  names(dose) <- names(train_t)
+  for (at in c("concept", "threshold", "right")) {
+    
+    attr(dose, at) <- as.vector(sapply(train_t, attr, at))
+    
+  }
+  
+  dose[names(dose) %in% unlist(score)] <- 1L
+  
+}
+
+# evaluate within
+{
+  test_cohort1 <- setdiff(config("cohort")[[src[1]]], train_cohort)
+  test <- load_data(src[1], cfg, times - 24L, times, cohort = test_cohort1)
+  dose_otp(test, times, dose, sofa[[src[1]]], test_cohort1, src[1]) +
+    ggtitle(srcwrap(src[1]))
+  
+  ggsave(filename = file.path(proj_root(), "figures", 
+                              paste0("OTP_", src[1], ".png")),
+         width = 8, height = 8)
+}
+
+# evaluate outside 1st
+{
+  test2 <- load_data(src[2], cfg, times - 24L, times, 
+                     cohort = config("cohort")[[src[2]]])
+  dose_otp(test2, times, dose, sofa[[src[2]]], config("cohort")[[src[2]]],
+           src[2]) +
+    ggtitle(srcwrap(src[2]))
+  
+  ggsave(filename = file.path(proj_root(), "figures", 
+                              paste0("OTP_", src[2], ".png")),
+         width = 8, height = 8)
+}
+
+# evaluate outside 2nd
+{
+  test3 <- load_data(src[3], cfg, times - 24L, times,
+                     cohort = config("cohort")[[src[3]]])
+  dose_otp(test3, times, dose, sofa[[src[3]]], config("cohort")[[src[3]]],
+           src[3]) +
+    ggtitle(srcwrap(src[3]))
+  
+  ggsave(filename = file.path(proj_root(), "figures", 
+                              paste0("OTP_", src[3], ".png")),
+         width = 8, height = 8)
+}
+
+all_test <- list(test, test2, test3)
+names(all_test) <- src
+
+fxt_test <- lapply(src, function(data_src) {
+  
+  test <- all_test[[data_src]]
+  test <- test[[length(test)]]
+  
+  merge(test, sofa[[data_src]], all.x = T)
+  
+})
+
+fxt_plots <- Map(dose_fxtp, fxt_test, list(score, score, score), src)
+
+aucs <- lapply(fxt_plots, function(x) {
+  
+  df <- cbind(
+    Reduce(rbind, x[["fx_roc"]]),
+    Reduce(rbind, x[["fx_prc"]])
+  )
+  colnames(df) <- c("DOSE AUROC", "SOFA AUROC", "DOSE AUPRC", "SOFA AUPRC")
+  rownames(df) <- names(x[["fx_roc"]])
+  
+  df
+})
+
+names(aucs) <- src
+print(aucs)
+
+for (cp in names(score)) {
+
+  p <- cowplot::plot_grid(
+    plotlist = lapply(fxt_plots, function(x) x[["fx_plot"]][[cp]]),
+    ncol = 3L
+  )
+  
+  ggsave(file.path(proj_root(), "figures", paste0(cp, ".png")), plot = p, 
+         height = 5, width = 15)
+
+}

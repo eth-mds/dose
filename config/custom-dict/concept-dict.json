@@ -1,0 +1,131 @@
+{
+  "gcs_raw": {
+    "concepts": "gcs",
+    "description": "GCS raw",
+    "set_sed_max": false,
+    "callback": "raw_cb",
+    "class": "rec_cncpt"
+  },
+  "map_beta200": {
+    "concepts": ["map", "norepi_equiv"],
+    "description": "MAP - 200 x NeEq",
+    "callback": "map_beta_200",
+    "class": "rec_cncpt"
+  },
+  "map_beta100": {
+    "concepts": ["map", "norepi_equiv"],
+    "description": "MAP - 100 x NeEq",
+    "callback": "map_beta_100",
+    "class": "rec_cncpt"
+  },
+  "map_beta50": {
+    "concepts": ["map", "norepi_equiv"],
+    "description": "MAP - 50 x NeEq",
+    "callback": "map_beta_50",
+    "class": "rec_cncpt"
+  },
+  "aptt_inr": {
+    "concepts": ["ptt", "inr_pt"],
+    "description": "Bellomo index (APTT x INR)",
+    "category": "respiratory",
+    "aggregate": ["min", "max"],
+    "callback": "aptt_inr_cb",
+    "class": "rec_cncpt"
+  },
+  "neut_div_lymph": {
+    "concepts": ["neut", "lymph"],
+    "description": "Neutrophils / Lymphocytes",
+    "category": "bone_marrow",
+    "callback": "neut_lymph_cb",
+    "class": "rec_cncpt"
+  },
+  "four_c": {
+    "concepts": ["age", "sex", "n_comb", "resp", "o2sat", "gcs", "bun", "crp"],
+    "description": "SaO2/FiO2",
+    "category": "Misc.",
+    "callback": "four_c_score_callback",
+    "class": "rec_cncpt"
+  },
+  "grs": {
+    "concepts": ["age", "sex", "o2sat", "neut_total", "crp", "alb", "crea", "DM", "COPD"],
+    "description": "SaO2/FiO2",
+    "category": "Misc.",
+    "callback": "grs_callback",
+    "class": "rec_cncpt"
+  },
+  "neut_total": {
+    "concepts": ["neut", "wbc"],
+    "category": "Misc.",
+    "callback": "multiply_wbc",
+    "class": "rec_cncpt"
+  },
+  "n_comb": {
+    "description": "No. comorbidities",
+    "category": "Misc.",
+    "target": "id_tbl",
+    "sources": {
+      "mimic_demo": [
+        {
+          "table": "diagnoses_icd",
+          "sub_var": "icd9_code",
+          "class": "col_itm",
+          "callback": "DM_callback"
+        }
+      ],
+      "eicu_demo": [
+        {
+          "table": "diagnosis",
+          "sub_var": "icd9code",
+          "class": "col_itm",
+          "callback": "DM_callback"
+        }
+      ]
+    }
+  },
+  "DM": {
+    "description": "No. comorbidities",
+    "category": "Misc.",
+    "target": "id_tbl",
+    "sources": {
+      "mimic_demo": [
+        {
+          "table": "diagnoses_icd",
+          "sub_var": "icd9_code",
+          "class": "col_itm",
+          "callback": "DM_callback"
+        }
+      ],
+      "eicu_demo": [
+        {
+          "table": "diagnosis",
+          "sub_var": "icd9code",
+          "class": "col_itm",
+          "callback": "DM_callback"
+        }
+      ]
+    }
+  },
+  "COPD": {
+    "description": "No. comorbidities",
+    "category": "Misc.",
+    "target": "id_tbl",
+    "sources": {
+      "mimic_demo": [
+        {
+          "table": "diagnoses_icd",
+          "sub_var": "icd9_code",
+          "class": "col_itm",
+          "callback": "CPD_callback"
+        }
+      ],
+      "eicu_demo": [
+        {
+          "table": "diagnosis",
+          "sub_var": "icd9code",
+          "class": "col_itm",
+          "callback": "CPD_callback"
+        }
+      ]
+    }
+  }
+}
