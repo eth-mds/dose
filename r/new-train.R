@@ -1,6 +1,7 @@
 auc_optimizer <- function(train_data, cfg, ...) {
 
-  systems <- c("cardio", "liver", "cns", "coag", "renal", "resp", "bone_marrow", "metabolic")
+  systems <- c("cardio", "liver", "cns", "coag", "renal", "resp", "immunological",
+               "metabolic")
   best <- lapply(systems, function(x) list(auc = 0.5))
   names(best) <- systems
 
@@ -8,7 +9,8 @@ auc_optimizer <- function(train_data, cfg, ...) {
 
     components <- NULL
     for (i in 1:length(cfg))
-      if(cfg[[i]][["category"]] == sys) components <- append(components, names(cfg)[i])
+      if(cfg[[i]][["category"]] == sys) 
+        components <- append(components, names(cfg)[i])
 
       for (cp in components) {
 

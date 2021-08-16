@@ -9,8 +9,9 @@ invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 
 cfg <- get_config("concepts", config_dir())
 
-src <- c("mimic", "aumc") # c("mimic_demo", "eicu_demo")
+src <- c("mimic", "aumc", "hirid")
 cohorts <- lapply(src, si_cohort)
+names(cohorts) <- src
 
 vars <- list(
   age = list(
@@ -46,19 +47,27 @@ vars <- list(
 pts_source_sum <- function(source, patient_ids) {
   tbl_list <- lapply(
     vars,
-    function(x) x[["callback"]](load_concepts(x[["concept"]], source, 
-                                              patient_ids = patient_ids, 
-                                              keep_components = T))
+    function(x) {
+      
+      if (source == "hirid" & x[["concept"]] == "adm") {
+        return(list(c("med", "surg", "other"), "%", rep(NA_integer_, 3)))
+      }
+      x[["callback"]](load_concepts(x[["concept"]], source, 
+                                    patient_ids = patient_ids, 
+                                    keep_components = T))
+      
+    }
   )
   
   pts_tbl <- Reduce(rbind,
     lapply(
       tbl_list,
-      function(x) data.frame(Reduce(cbind, x))
+      function(x) data.frame(Reduce(cbind, x), stringsAsFactors = FALSE)
     )
   )
   
-  cohort_info <- as.data.frame(cbind("Cohort size", "n", length(patient_ids)))
+  cohort_info <- as.data.frame(cbind("Cohort size", "n", length(patient_ids)),
+                               stringsAsFactors = FALSE)
   names(cohort_info) <- names(pts_tbl)
   
   pts_tbl <- rbind(
@@ -67,7 +76,7 @@ pts_source_sum <- function(source, patient_ids) {
   )
   
   names(pts_tbl) <- c("Variable", "Reported", srcwrap(source))
-  levels(pts_tbl$Variable) <- vapply(as.character(pts_tbl$Variable), 
+  pts_tbl$Variable <- vapply(as.character(pts_tbl$Variable), 
                                      function(x) concept_translator[[x]],
                                      character(1L))
   
@@ -75,15 +84,8 @@ pts_source_sum <- function(source, patient_ids) {
 }
 
 res <- Reduce(
-  function(x, y) merge(x, y, by = c("Variable", "Reported")),
+  function(x, y) merge(x, y, by = c("Variable", "Reported"), sort = FALSE),
   Map(pts_source_sum, src, cohorts)
 )
 
-data.table::setorderv(res, "Variable")
-
-my_doc <- read_docx()
-
-my_doc <- my_doc %>%
-  body_add_table(res, style = "table_template")
-
-print(my_doc, target = file.path(root, "paper", "tables", "patient_table.docx"))
+df_to_word(res, file.path(root, "tables", "Table1.docx"))
