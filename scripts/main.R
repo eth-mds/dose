@@ -25,11 +25,7 @@ train <- load_data(src[1], cfg, times - 24L, times, cohort = train_cohort)
 
 sofa <- lapply(
   src, function(data_src) {
-    res <- load_concepts("sofa", data_src, 
-                         explicit_wins = times, 
-                         keep_components = T, 
-                         verbose = F)
-    
+    res <- get_sofa(data_src, wins = times)
     replace_na(res, 0L)
   }
 )
@@ -78,7 +74,8 @@ if (!file.exists(file.path(proj_root(), "config", "score.json"))) {
 # evaluate within
 {
   test_cohort1 <- setdiff(config("cohort")[[src[1]]], train_cohort)
-  test <- load_data(src[1], cfg_sparse, times - 24L, times, cohort = test_cohort1)
+  test <- load_data(src[1], cfg_sparse, times - 24L, times, 
+                    cohort = test_cohort1)
   
   int1 <- dose_otp(test, times, dose_sparse, sofa[[src[1]]], test_cohort1, 
                    src[1])

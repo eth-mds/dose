@@ -29,7 +29,7 @@ load_data <- function(src, cfg, lwr, upr, cohort = si_cohort(src), enc = TRUE,
     ret[is.na(death), "death"] <- F
     attr(ret, "counts") <- attr(dat, "counts")
     attr(ret, "med_iqr") <- attr(dat, "med_iqr")
-    
+
     ret
   }
 
@@ -40,8 +40,19 @@ load_data <- function(src, cfg, lwr, upr, cohort = si_cohort(src), enc = TRUE,
     }, lwr, upr)
   }
 
-  dat <- load_concepts(names(cfg), src, aggregate = aggreg_fun(cfg),
-                       patient_ids = cohort)
+  root <- rprojroot::find_root(".git/index")
+  dat_fil <- file.path(root, "dose-dat", paste0("dat_", src, ".RData"))
+  if (file.exists(dat_fil)) {
+    load(dat_fil)
+  } else {
+    dat <- load_concepts(names(cfg), src, aggregate = aggreg_fun(cfg))
+    save(dat, file = dat_fil)
+  }
+
+  stopifnot(all(names(cfg) %in% names(dat)))
+  
+  dat <- dat[, c(meta_vars(dat, names(cfg))), with=FALSE]
+  dat <- dat[get(id_var(dat)) %in% cohort]
   out <- load_concepts("death", src, patient_ids = cohort)
   out[, c(index_var(out)) := NULL]
 
@@ -93,7 +104,7 @@ preproc <- function(dat, cfg, win_lwr = hours(-Inf),
 
   repl_na <- function(x, val) replace(x, is.na(x), val)
 
-  assert_that(is_ts_tbl(dat), inherits(win_lwr, "difftime"), 
+  assert_that(is_ts_tbl(dat), inherits(win_lwr, "difftime"),
               inherits(win_upr, "difftime"),
               is.list(cfg), all(data_vars(dat) %in% names(cfg)))
 
@@ -107,15 +118,15 @@ preproc <- function(dat, cfg, win_lwr = hours(-Inf),
   res <- dat[(get(index_var(dat)) >= win_lwr) & (get(index_var(dat)) <= win_upr), ]
   counts <- colSums(!is.na(res))
 
-  med_iqr <- round(colQuantiles(as.matrix(res[, -c(1, 2)]), 
-                                probs = c(0.5, 0.25, 0.75), 
+  med_iqr <- round(colQuantiles(as.matrix(res[, -c(1, 2)]),
+                                probs = c(0.5, 0.25, 0.75),
                                 na.rm = TRUE), digits = 1L)
   med_iqr <- paste0(med_iqr[, 1], " [", med_iqr[, 2], ", ", med_iqr[, 3], "]")
   res <- res[, Map(do_call, agg, .SD), .SDcols = names(agg), by = c(id_vars(dat))]
   if (impute_vals) {
     res <- res[, c(names(med)) := Map(repl_na, .SD, med), .SDcols = names(med)]
   }
-  
+
   ret <- as_id_tbl(res, id_vars(dat))
   attr(ret, "counts") <- counts
   attr(ret, "med_iqr") <- med_iqr
@@ -203,4 +214,19 @@ indicator_encoding <- function(dat, cfg) {
   res <- data.table::setnames(res, "V1", id_vars(dat))
 
   as_id_tbl(res, id_vars(dat))
+}
+
+get_sofa <- function(src, wins) {
+
+  root <- rprojroot::find_root(".git/index")
+  dat_fil <- file.path(root, "dose-dat", paste0("sofa_", src, ".RData"))
+  if (file.exists(dat_fil)) {
+    load(dat_fil)
+  } else {
+    sf <- load_concepts("sofa", src, explicit_wins = wins, keep_components = TRUE)
+    save(sf, file = dat_fil)
+  }
+  stopifnot(all(wins %in% index_col(sf))) # check whether everything is loaded
+  sf[get(index_var(sf)) %in% wins]
+
 }
