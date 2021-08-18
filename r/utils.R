@@ -174,10 +174,13 @@ load_cts <- function(src, cfg, lwr, upr, cohort = si_cohort(src),
 
 
 df_to_word <- function(df, path, ...) {
+  ft <- flextable(df)
+  ft <- font(ft, fontname = "Calibri (Headings)", part = "all")
+  ft <- fontsize(ft, size = 10, part = "all")
+  ft <- set_caption(ft, caption = "La-la-la")
   my_doc <- read_docx()
   
-  my_doc <- my_doc %>%
-    body_add_table(df, style = "table_template", ...)
+  my_doc <- body_add_flextable(my_doc, value = ft)
   
   print(my_doc, target = path)
 }

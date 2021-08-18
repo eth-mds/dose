@@ -36,7 +36,8 @@ load_data <- function(src, cfg, lwr, upr, cohort = si_cohort(src), enc = TRUE,
   load_wins <- function(lwr, upr, cfg, dat, out, enc, impute_vals) {
     Map(function(a, b) {
       load_win(as.difftime(a, units = units(lwr)),
-               as.difftime(b, units = units(upr)), cfg, dat, out, enc, impute_vals)
+               as.difftime(b, units = units(upr)), cfg, dat, out, enc,
+               impute_vals)
     }, lwr, upr)
   }
 
@@ -51,7 +52,7 @@ load_data <- function(src, cfg, lwr, upr, cohort = si_cohort(src), enc = TRUE,
 
   stopifnot(all(names(cfg) %in% names(dat)))
   
-  dat <- dat[, c(meta_vars(dat, names(cfg))), with=FALSE]
+  dat <- dat[, c(meta_vars(dat), names(cfg)), with=FALSE]
   dat <- dat[get(id_var(dat)) %in% cohort]
   out <- load_concepts("death", src, patient_ids = cohort)
   out[, c(index_var(out)) := NULL]

@@ -9,8 +9,8 @@ invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 
 cfg <- get_config("concepts", config_dir())
 
-src <- c("mimic", "aumc", "hirid")
-cohorts <- lapply(src, si_cohort)
+src <- c("miiv", "aumc", "hirid")
+cohorts <- lapply(config("cohort")[src], `[[`, "all")
 names(cohorts) <- src
 
 vars <- list(
@@ -51,6 +51,9 @@ pts_source_sum <- function(source, patient_ids) {
       
       if (source == "hirid" & x[["concept"]] == "adm") {
         return(list(c("med", "surg", "other"), "%", rep(NA_integer_, 3)))
+      } else if (x[["concept"]] == "sofa") {
+        sf <- get_sofa(source, hours(24L))
+        return(x[["callback"]](sf[get(id_var(sf)) %in% patient_ids]))
       }
       x[["callback"]](load_concepts(x[["concept"]], source, 
                                     patient_ids = patient_ids, 

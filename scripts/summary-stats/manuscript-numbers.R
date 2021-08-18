@@ -7,10 +7,7 @@ library(data.table)
 r_dir <- file.path(rprojroot::find_root(".git/index"), "r")
 invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 
-cohort <- list(
-  mimic = si_cohort("mimic"),
-  aumc = si_cohort("aumc")
-)
+cohort <- config("cohort")
 
 n_measures <- function(cnc, src, patient_ids, upto = hours(24L)) {
   
@@ -36,5 +33,7 @@ concept_list <- c("pafi", "ast", "lact",
   "map", "norepi_equiv", "lymph", "ptt", "inr_pt",
   "bun")
 
-n_measures(concept_list, "mimic", cohort[["mimic"]])
-n_measures(concept_list, "aumc", cohort[["aumc"]])
+n_measures(concept_list, "miiv", cohort[["miiv"]][["all"]])
+n_measures(concept_list, "aumc", cohort[["aumc"]][["all"]])
+n_measures(concept_list, "hirid", cohort[["hirid"]][["all"]])
+

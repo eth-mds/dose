@@ -3,6 +3,7 @@ library(ggplot2)
 library(assertthat)
 library(precrec)
 library(magrittr)
+library(matrixStats)
 library(officer)
 
 root <- rprojroot::find_root(".git/index")
@@ -10,12 +11,13 @@ r_dir <- file.path(root, "r")
 invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 Sys.setenv(RICU_CONFIG_PATH = file.path(root, "config", "custom-dict"))
 
-src <- c("mimic", "aumc", "hirid")
+src <- c("miiv", "aumc", "hirid")
 cfg <- get_config("features", config_dir())
 
 var_tbl <- function(src, cfg) {
   
-  res <- load_data(src, cfg, hours(0L), hours(24L), enc = FALSE)
+  res <- load_data(src, cfg, hours(0L), hours(24L), 
+                   cohort = config("cohort")[[src]][["all"]], enc = FALSE)
   n_coh <- length(unique(id_col(res)))
   
   res[, c(id_vars(res)) := NULL]
