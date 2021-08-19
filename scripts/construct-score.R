@@ -17,10 +17,10 @@ cfg <- get_config("features", config_dir())
 src <- c("miiv", "aumc", "hirid")
 
 train_time <- hours(24L)
-train <- rbind(
-  load_data(src[1], cfg, times - 24L, train_time,
+train <- list(
+  load_data(src[1], cfg, train_time - 24L, train_time,
                      cohort = config("cohort")[[src[1]]][["train"]]),
-  load_data(src[2], cfg, times - 24L, train_time,
+  load_data(src[2], cfg, train_time - 24L, train_time,
             cohort = config("cohort")[[src[2]]][["train"]])
 )
 

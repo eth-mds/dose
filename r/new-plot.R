@@ -164,7 +164,7 @@ dose_fxtp <- function(test_24, score, data_src, boot = TRUE) {
 
     }
 
-    if (data_src != "mimic" | cp != "renal") {
+    if (data_src != "miiv" | cp != "renal") {
 
       fx_plot[[cp]] <- fx_plot[[cp]] + ylab(NULL)
 
@@ -176,7 +176,7 @@ dose_fxtp <- function(test_24, score, data_src, boot = TRUE) {
         theme(axis.text.x = element_text(color = "white"))
     }
 
-    if (data_src != "mimic") {
+    if (data_src != "miiv") {
 
       fx_plot[[cp]] <- fx_plot[[cp]] +
         theme(axis.text.y = element_text(color = "white"))
