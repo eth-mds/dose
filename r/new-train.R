@@ -1,7 +1,6 @@
 auc_optimizer <- function(train_data, cfg, ...) {
 
-  systems <- c("cardio", "liver", "cns", "coag", "renal", "resp", "immunological",
-               "metabolic")
+  systems <- c("cardio", "liver", "cns", "coag", "renal", "resp", "metabolic")
   best <- lapply(systems, function(x) list(auc = 0.5))
   names(best) <- systems
 
@@ -9,7 +8,7 @@ auc_optimizer <- function(train_data, cfg, ...) {
 
     components <- NULL
     for (i in 1:length(cfg))
-      if(cfg[[i]][["category"]] == sys) 
+      if(cfg[[i]][["category"]] == sys)
         components <- append(components, names(cfg)[i])
 
       for (cp in components) {
@@ -30,24 +29,11 @@ auc_optimizer <- function(train_data, cfg, ...) {
             best[[sys]][["feature"]] <- cp
             best[[sys]][["cols"]] <- colnames(mat)[cpt[, k]] # careful here
 
-            if (length(grep(paste0("^sofa.", sys), names(train_data))) == 0) {
-              sofa.cp <- rep(0, nrow(train_data))
-              sofa.name <- "Prev. no"
-            } else {
-              sofa.cp <- train_data[[grep(paste0("^sofa.", sys), names(train_data))]]
-              sofa.name <- "SOFA"
-            }
-
             eval <- evalmod(
-              scores = list(rowSums(mat[, cpt[, k]]), replace_na(sofa.cp, 0)),
-              labels = list(train_data[["death"]], train_data[["death"]]),
-              dsids = 1:2, modnames = paste(c("DOSE", sofa.name), sys)
+              scores = list(rowSums(mat[, cpt[, k]])),
+              labels = list(train_data[["death"]]),
+              dsids = 1, modnames = paste(c("DOSE"), sys)
             )
-
-            best[[sys]][["plot"]]<- autoplot(eval, "ROC") + geom_line(size = 2) +
-              theme(legend.position = "bottom",
-                legend.text = element_text(size=15),
-                plot.title = element_blank())
 
           }
 

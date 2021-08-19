@@ -68,7 +68,7 @@ score2table <- function(score) {
   }
 
   dict <- get_config("concept-dict")
-  full_names <- vapply(attr(score, "concept"), 
+  full_names <- vapply(attr(score, "concept"),
                        function(x) stringr::str_to_title(
                          dict[[x]][["description"]]
                        ),
@@ -130,7 +130,7 @@ is_interval <- function(x) {
   assert_that(is_difftime(x), length(x) > 0L) && all(x >= 0)
 }
 
-load_cts <- function(src, cfg, lwr, upr, cohort = si_cohort(src), 
+load_cts <- function(src, cfg, lwr, upr, cohort = si_cohort(src),
                      load_sofa = F) {
 
   load_win <- function(lwr, upr, cfg, dat, out) {
@@ -151,7 +151,7 @@ load_cts <- function(src, cfg, lwr, upr, cohort = si_cohort(src),
     }, lwr, upr)
   }
 
-  dat <- load_concepts(names(cfg), src, aggregate = aggreg_fun(cfg), 
+  dat <- load_concepts(names(cfg), src, aggregate = aggreg_fun(cfg),
                        patient_ids = cohort)
   out <- load_concepts("death", src, patient_ids = cohort)
   out[, c(index_var(out)) := NULL]
@@ -163,7 +163,7 @@ load_cts <- function(src, cfg, lwr, upr, cohort = si_cohort(src),
   if(load_sofa) {
     res <- merge(
       res,
-      replace_na(load_concepts("sofa", src, keep_components = T, 
+      replace_na(load_concepts("sofa", src, keep_components = T,
                                patient_ids = cohort, explicit_wins = times), 0)
     )
   }
@@ -173,20 +173,24 @@ load_cts <- function(src, cfg, lwr, upr, cohort = si_cohort(src),
 }
 
 
-df_to_word <- function(df, path, ...) {
+df_to_word <- function(df, path, caption = "", landscape = FALSE, ...) {
   ft <- flextable(df)
+  ft <- set_caption(ft, caption = caption)
   ft <- font(ft, fontname = "Calibri (Headings)", part = "all")
   ft <- fontsize(ft, size = 10, part = "all")
-  ft <- set_caption(ft, caption = "La-la-la")
   my_doc <- read_docx()
-  
+
   my_doc <- body_add_flextable(my_doc, value = ft)
-  
+
+  if (landscape) my_doc <- my_doc %>% body_end_section_landscape()
+
   print(my_doc, target = path)
 }
 
 scwrap <- function(sc) {
   switch(sc, cardio = "Cardio", renal = "Renal", liver = "Hepatic",
-         metabolic = "Metabolic", resp = "Respiratory", 
+         metabolic = "Metabolic", resp = "Respiratory",
          bone_marrow = "Immunological", coag = "Coagulation", "-")
 }
+
+spec_dec <- function(x, k) trimws(format(round(x, k), nsmall=k))

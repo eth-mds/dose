@@ -7,8 +7,9 @@ invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 
 src <- c("mimic_demo", "eicu_demo", "miiv", "hirid", "aumc")
 
+set.seed(2021)
 cohort <- lapply(
-  src, 
+  src,
   function(dsrc) {
     coh <- si_cohort(dsrc)
     if (is.element(dsrc, c("miiv", "aumc", "mimic_demo", "eicu_demo"))) {

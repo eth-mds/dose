@@ -3,6 +3,8 @@ srcwrap <- function(src) {
 
   if(src == "mimic") {
     return("MIMIC-III")
+  } else if (src == "miiv") {
+    return("MIMIC-IV")
   } else if (src == "eicu") {
     return("eICU")
   } else if (src == "hirid") {
@@ -101,3 +103,21 @@ concept_translator <- list(
   sofa_cardio_comp = "- Cardiovascular",
   sofa_renal_comp = "- Renal"
 )
+
+vec_score <- function(score = config("score")) {
+
+  train_t <- load_data("miiv", cfg, hours(0L), hours(24L),
+                       cohort = config("cohort")[["miiv"]][["test"]])
+  train_t <- train_t[, setdiff(names(train_t), c(id_vars(train_t), "death")),
+                     with = F]
+  dose <- rep(0, ncol(train_t))
+  names(dose) <- names(train_t)
+  for (at in c("concept", "threshold", "right")) {
+
+    attr(dose, at) <- as.vector(sapply(train_t, attr, at))
+
+  }
+
+  dose[names(dose) %in% unlist(score)] <- 1L
+  dose
+}

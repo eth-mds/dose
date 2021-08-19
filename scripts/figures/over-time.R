@@ -1,30 +1,37 @@
+library(ricu)
+library(ggplot2)
+library(assertthat)
+library(precrec)
+library(matrixStats)
+library(magrittr)
+library(cowplot)
+library(officer)
 
-# evaluate within
-{
-  test_cohort1 <- setdiff(config("cohort")[[src[1]]], train_cohort)
-  test <- load_data(src[1], cfg_sparse, times - 24L, times,
-                    cohort = test_cohort1)
-  
-  int1 <- dose_otp(test, times, dose_sparse, sofa[[src[1]]], test_cohort1,
-                   src[1])
+root <- rprojroot::find_root(".git/index")
+r_dir <- file.path(root, "r")
+invisible(lapply(list.files(r_dir, full.names = TRUE), source))
+Sys.setenv(RICU_CONFIG_PATH = file.path(root, "config", "custom-dict"))
+
+cfg <- get_config("features", config_dir())
+src <- c("miiv", "aumc", "hirid")
+
+### vectorized score
+dose <- vec_score()
+
+### determine times
+times <- hours(seq.int(6, 24, 2))
+
+evl <- list()
+for (i in seq_along(src)) {
+
+  test <- load_data(src[i], cfg, times - 24L, times,
+                    cohort = config("cohort")[[src[i]]][["test"]])
+  sf <- get_sofa(src[i], times)
+
+  evl[[i]] <- dose_otp(test, times, dose, sf,
+                       config("cohort")[[src[i]]][["test"]], src[i])
 }
 
-# evaluate outside 1st
-{
-  test2 <- load_data(src[2], cfg_sparse, times - 24L, times,
-                     cohort = config("cohort")[[src[2]]])
-  ext1 <- dose_otp(test2, times, dose_sparse, sofa[[src[2]]],
-                   config("cohort")[[src[2]]], src[2])
-}
-
-# evaluate outside 2nd
-{
-  test3 <- load_data(src[3], cfg_sparse, times - 24L, times,
-                     cohort = config("cohort")[[src[3]]])
-  ext2 <- dose_otp(test3, times, dose_sparse, sofa[[src[3]]],
-                   config("cohort")[[src[3]]], src[3])
-}
-
-fig1 <- otp_fig(rbind(int1, ext1, ext2))
+fig1 <- otp_fig(Reduce(rbind, evl))
 ggsave(file.path(root, "figures", "Figure1.tiff"), fig1,
-       width = 12, height = 7)
+       width = 12, height = 7, type = "cairo", compression = "lzw")

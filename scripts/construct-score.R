@@ -14,33 +14,18 @@ Sys.setenv(RICU_CONFIG_PATH = file.path(root, "config", "custom-dict"))
 
 cfg <- get_config("features", config_dir())
 
-src <- c("mimic", "aumc", "hirid")
-set.seed(2021)
-train_cohort <- sample(config("cohort")[[src[1]]],
-                       size = round(0.75 * length(config("cohort")[[src[1]]])))
+src <- c("miiv", "aumc", "hirid")
 
-times <- hours(seq.int(6, 24, 2))
-at24 <- which(times == hours(24L))
-train <- load_data(src[1], cfg, times - 24L, times, cohort = train_cohort)
-
-sofa <- lapply(
-  src, function(data_src) {
-    res <- get_sofa(data_src, wins = times)
-    replace_na(res, 0L)
-  }
+train_time <- hours(24L)
+train <- rbind(
+  load_data(src[1], cfg, times - 24L, train_time,
+                     cohort = config("cohort")[[src[1]]][["train"]]),
+  load_data(src[2], cfg, times - 24L, train_time,
+            cohort = config("cohort")[[src[2]]][["train"]])
 )
-names(sofa) <- src
 
 # train
-train_time <- hours(16L)
-train_slice <- which(times == train_time)
-
-sofa_slice <- sofa[[src[1]]]
-sofa_slice <- sofa_slice[get(index_var(sofa_slice)) == train_time]
-
-best <- auc_optimizer(merge(train[[train_slice]], sofa_slice, all.x = T), cfg)
+best <- auc_optimizer(train, cfg)
 
 score <- lapply(best, `[[`, "cols")
-score["cns"] <- NULL
-
 config("score", score)

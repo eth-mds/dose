@@ -9,7 +9,7 @@ if (dir.exists(file.path(root, "figures"))) dir.create(file.path(root, "figures"
 source(file.path(root, "scripts", "cohort-gen.R"))
 
 # construct the score
-source(file.path(root, "scripts", "construct-score.R"))
+# source(file.path(root, "scripts", "construct-score.R"))
 
 # manuscript numbers
 source(file.path(root, "scripts", "summary-stats", "manuscript-numbers.R"))

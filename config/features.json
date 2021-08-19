@@ -1,7 +1,7 @@
 {
   "alt": {
     "direction": ["increasing"],
-    "lower": [36],
+    "lower": [35],
     "upper": [250],
     "step": [5],
     "category": ["liver"],
@@ -19,7 +19,7 @@
   },
   "ast": {
     "direction": ["increasing"],
-    "lower": [47],
+    "lower": [45],
     "upper": [250],
     "step": [5],
     "category": ["liver"],
@@ -58,7 +58,7 @@
     "lower": [4.9],
     "upper": [10.3],
     "step": [0.2],
-    "category": ["-"],
+    "category": ["renal"],
     "full_name": ["Calcium"],
     "unit": ["mg/dL"]
   },
@@ -70,15 +70,6 @@
     "category": ["renal"],
     "full_name": ["Ionized Calcium"],
     "unit": ["mmol/L"]
-  },
-  "tco2": {
-    "direction": ["decreasing"],
-    "lower": [7],
-    "upper": [25],
-    "step": [1],
-    "category": ["-"],
-    "full_name": ["Calculated Total CO2"],
-    "unit": ["mEq/L"]
   },
   "cl": {
     "direction": ["decreasing"],
@@ -264,7 +255,7 @@
     "lower": [6.9],
     "upper": [7.4],
     "step": [0.2],
-    "category": ["-"],
+    "category": ["metabolic"],
     "full_name": ["pH of Blood"],
     "unit": ["-"]
   },
@@ -273,7 +264,7 @@
     "lower": [3.4],
     "upper": [12.4],
     "step": [0.5],
-    "category": ["liver2"],
+    "category": ["-"],
     "full_name": ["Phosphate"],
     "unit": ["mg/dL"]
   },
@@ -390,7 +381,7 @@
     "lower": [0],
     "upper": [3.4],
     "step": [0.2],
-    "category": ["-"],
+    "category": ["liver"],
     "full_name": ["Albumin"],
     "unit": ["g/dL"]
   },
@@ -402,24 +393,6 @@
     "category": ["cardio"],
     "full_name": ["Creatine Kinase"],
     "unit": ["IU/L", "U/l"]
-  },
-  "etco2": {
-    "direction": ["decreasing"],
-    "lower": [10],
-    "upper": [35],
-    "step": [2],
-    "category": ["resp"],
-    "full_name": ["End-tidal CO2"],
-    "unit": ["mmHg", "mm Hg"]
-  },
-  "crp": {
-    "direction": ["increasing"],
-    "lower": [10],
-    "upper": [200],
-    "step": [10],
-    "category": ["immunological"],
-    "full_name": ["C-reactive Protein"],
-    "unit": ["mg/L"]
   },
   "gcs": {
     "direction": ["decreasing"],
@@ -511,15 +484,6 @@
     "full_name": ["Direct Bilirubin"],
     "unit": ["mg/dL"]
   },
-  "bnd": {
-    "direction": ["increasing"],
-    "lower": [0],
-    "upper": [50],
-    "step": [5],
-    "category": ["-"],
-    "full_name": ["Bands"],
-    "unit": ["%"]
-  },
   "ckmb": {
     "direction": ["increasing"],
     "lower": [10],
@@ -528,15 +492,6 @@
     "category": ["-"],
     "full_name": ["Creatine Kinase MB"],
     "unit": ["IU/L"]
-  },
-  "esr": {
-    "direction": ["increasing"],
-    "lower": [10],
-    "upper": [250],
-    "step": [10],
-    "category": ["-"],
-    "full_name": ["Sedimentation Rate"],
-    "unit": ["mm/hr"]
   },
   "fgn": {
     "direction": ["increasing"],
@@ -564,14 +519,5 @@
     "category": ["-"],
     "full_name": ["Troponin T"],
     "unit": ["ng/mL"]
-  },
-  "methb": {
-    "direction": ["increasing"],
-    "lower": [0.2],
-    "upper": [10],
-    "step": [0.1],
-    "category": ["-"],
-    "full_name": ["Methemoglobin"],
-    "unit": ["%"]
   }
 }
