@@ -34,7 +34,7 @@ otp_fig <- function(df) {
 
 dose_fxtp <- function(test_24, score, data_src, boot = TRUE) {
 
-  test_24[, dose := rowSums(test_24[, unlist(score), with=F])]
+  test_24[, dose := rowSums(test_24[, unlist(score), with = FALSE])]
   fx_plot <- list()
   fx_legend <- list()
   fx_roc <- list()
@@ -49,7 +49,7 @@ dose_fxtp <- function(test_24, score, data_src, boot = TRUE) {
 
     for(bt in 1:nboot) {
 
-      ids <- sample(1:nrow(test_24), nrow(test_24), replace = T)
+      ids <- sample(1:nrow(test_24), nrow(test_24), replace = TRUE)
       scores <- c(scores,
                   lapply(methods, function(x) as.numeric(test_24[[x]][ids])))
       labels <- c(labels,
@@ -63,13 +63,13 @@ dose_fxtp <- function(test_24, score, data_src, boot = TRUE) {
     eval <- evalmod(scores = scores, labels = labels, dsids = dsids,
                     modnames = modnames)
 
-    aurocs <- auc(eval)$aucs[c(T, F)]
-    auprcs <- auc(eval)$aucs[c(F, T)]
+    aurocs <- auc(eval)$aucs[c(TRUE, FALSE)]
+    auprcs <- auc(eval)$aucs[c(FALSE, TRUE)]
 
     baseline <- which(methods == "dose")
 
     aurocs_full <- tapply(aurocs, factor(modnames, levels = unique(modnames)),
-                          function(x) x, simplify = F)
+                          function(x) x, simplify = FALSE)
     names(aurocs_full) <- methods
 
     # more powerful, paired hypothesis testing
@@ -92,10 +92,7 @@ dose_fxtp <- function(test_24, score, data_src, boot = TRUE) {
     cat("AUROC for", srcwrap(data_src), "patients", round(mean(base_aucs), 3),
         "vs.", round(mean(cmp_aucs[methods == "sofa"]), 3), "\n")
     cat("p-value", pair.pvals[methods == "sofa"], "\n")
-
   }
-
-
 
   for (cp in names(score)) {
 
@@ -112,11 +109,11 @@ dose_fxtp <- function(test_24, score, data_src, boot = TRUE) {
       labels <- list()
       methods <- c("DOSE", "SOFA")
       nboot <- 500
-      dose.cp <- rowSums(test_24[, score[[cp]], with=F])
+      dose.cp <- rowSums(test_24[, score[[cp]], with = FALSE])
 
       for(bt in 1:nboot) {
 
-        ids <- sample(1:nrow(test_24), nrow(test_24), replace = T)
+        ids <- sample(1:nrow(test_24), nrow(test_24), replace = TRUE)
         scores <- c(scores, list(dose.cp[ids], sofa.cp[ids]))
         labels <- c(labels,
                     lapply(1:length(methods), function(x) test_24[["death"]][ids]))
@@ -138,55 +135,22 @@ dose_fxtp <- function(test_24, score, data_src, boot = TRUE) {
     )
 
     fx_roc[[cp]] <- list(
-      dose = auc(eval)$aucs[c(T, F, F, F)],
-      sofa = auc(eval)$aucs[c(F, F, T, F)]
+      dose = auc(eval)$aucs[c(TRUE, FALSE, FALSE, FALSE)],
+      sofa = auc(eval)$aucs[c(FALSE, FALSE, TRUE, FALSE)]
     )
 
     fx_prc[[cp]] <- list(
-      dose = auc(eval)$aucs[c(F, T, F, F)],
-      sofa = auc(eval)$aucs[c(F, F, F, T)]
+      dose = auc(eval)$aucs[c(FALSE, TRUE, FALSE, FALSE)],
+      sofa = auc(eval)$aucs[c(FALSE, FALSE, FALSE, TRUE)]
     )
 
+    tmp <- ggplot2::fortify(eval)
+    tmp <- cbind(tmp, source = rep(srcwrap(data_src), nrow(tmp)),
+                 component = rep(scwrap(cp), nrow(tmp)))
 
-    fx_plot[[cp]] <- autoplot(eval, "ROC") + geom_line(size = 1) +
-      ggtitle(NULL) +
-      #ggtitle(paste("ROC curve on", srcwrap(data_src) ,"at 24 hours")) +
-      theme(legend.position = "bottom", legend.text = element_text(size=10),
-            plot.margin = unit(c(0, -5, 0, -5), "cm")) + xlab(NULL) + ylab(NULL)
-
-    fx_legend[[cp]] <- get_legend(fx_plot[[cp]])
-
-    fx_plot[[cp]] <- fx_plot[[cp]] + theme(legend.position = "none")
-
-    if (data_src != "aumc" | cp != "metabolic") {
-
-      fx_plot[[cp]] <- fx_plot[[cp]] + xlab(NULL)
-
-    }
-
-    if (data_src != "miiv" | cp != "renal") {
-
-      fx_plot[[cp]] <- fx_plot[[cp]] + ylab(NULL)
-
-    }
-
-    if (cp != "metabolic") {
-
-      fx_plot[[cp]] <- fx_plot[[cp]] +
-        theme(axis.text.x = element_text(color = "white"))
-    }
-
-    if (data_src != "miiv") {
-
-      fx_plot[[cp]] <- fx_plot[[cp]] +
-        theme(axis.text.y = element_text(color = "white"))
-
-    }
-
-
+    fx_plot[[cp]] <- tmp
   }
 
   list(fx_plot = fx_plot, fx_roc = fx_roc, fx_prc = fx_prc,
        fx_legend = fx_legend)
-
 }
