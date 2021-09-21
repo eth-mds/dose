@@ -1,11 +1,4 @@
 {
-  "gcs_raw": {
-    "concepts": "gcs",
-    "description": "GCS raw",
-    "set_sed_max": false,
-    "callback": "raw_cb",
-    "class": "rec_cncpt"
-  },
   "map_beta200": {
     "concepts": ["map", "norepi_equiv"],
     "description": "MAP - 200 x NeEq",
@@ -127,5 +120,103 @@
         }
       ]
     }
+  },
+  "sed_med": {
+    "target": "win_tbl",
+    "description": "Sedation",
+    "class": "lgl_cncpt",
+    "sources": {
+      "aumc": [
+        {
+          "table": "drugitems",
+          "sub_var": "itemid",
+          "ids": [
+            7194, 7219, 7480, 6883, 12940, 7165, 6962, 9620, 12750, 7170,
+            19163, 12402, 21242, 7014, 9146, 9048
+          ],
+          "dur_var": "stop"
+        }
+      ],
+      "hirid": [
+        {
+          "table": "pharma",
+          "sub_var": "pharmaid",
+          "ids": [
+            442, 1001215, 1000977, 1000978, 245, 246, 1000988, 1000239,
+            1000418, 1000700, 1001051, 1001054, 1000902, 251, 252, 1000976,
+            1000991, 1001049, 1000847, 1000475, 1000607, 202, 1000491, 1001050,
+            1001052, 1001053, 208, 1000691, 1000699
+          ],
+          "dur_var": "enteredentryat",
+          "group_var": "infusionid",
+          "target": "ts_tbl",
+          "callback": "hirid_pharma_win12"
+        }
+      ],
+      "miiv": [
+        {
+          "table": "inputevents",
+          "sub_var": "itemid",
+          "ids": [
+            222168, 221744, 221668, 225942, 225154, 221833, 221385, 221623,
+            227520, 225972
+          ],
+          "dur_var": "endtime"
+        }
+      ],
+      "mimic": [
+        {
+          "table": "inputevents_mv",
+          "sub_var": "itemid",
+          "ids": [
+            222168, 221744, 221668, 225942, 225154, 221833, 221385, 221623,
+            227520, 225972
+          ],
+          "dur_var": "endtime"
+        },
+        {
+          "table": "inputevents_cv",
+          "sub_var": "itemid",
+          "ids": [
+            30131, 30118, 30124, 30126, 30308, 30149, 30150, 44306, 45520,
+            46725, 45764, 30139, 30153, 41733, 43387
+          ],
+          "dur_var": "storetime",
+          "target": "ts_tbl",
+          "callback": "ts_to_win_12hours"
+        }
+      ]
+    }
+  },
+  "sed_rass": {
+    "concepts": "rass",
+    "description": "RASS as 6h windows",
+    "category": "neurological",
+    "callback": "sed_rass",
+    "class": "rec_cncpt"
+  },
+  "gcs_raw": {
+    "concepts": ["egcs", "mgcs", "vgcs", "tgcs"],
+    "description": "GCS (w/o sedation)",
+    "category": "neurological",
+    "aggregate": ["min", "min", "min", "min"],
+    "callback": "gcs_cb_generator('gcs_raw', NA_character_)",
+    "class": "rec_cncpt"
+  },
+  "gcs_med": {
+    "concepts": ["egcs", "mgcs", "vgcs", "tgcs", "sed_med"],
+    "description": "GCS (with sedation)",
+    "category": "neurological",
+    "aggregate": ["min", "min", "min", "min", "any"],
+    "callback": "gcs_cb_generator('gcs_med', 'sed_med')",
+    "class": "rec_cncpt"
+  },
+  "gcs_rass": {
+    "concepts": ["egcs", "mgcs", "vgcs", "tgcs", "sed_rass"],
+    "description": "GCS (with rass)",
+    "category": "neurological",
+    "aggregate": ["min", "min", "min", "min", "any"],
+    "callback": "gcs_cb_generator('gcs_rass', 'sed_rass')",
+    "class": "rec_cncpt"
   }
 }
