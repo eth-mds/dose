@@ -127,5 +127,225 @@
         }
       ]
     }
+  },
+  "mech_vent": {
+    "target": "win_tbl",
+    "description": "Mechanical ventilation",
+    "class": "lgl_cncpt",
+    "sources": {
+      "mimic": [
+        {
+          "table": "inputevents_cv",
+          "sub_var": "itemid",
+          "ids": [30069],
+          "dur_var": "storetime",
+          "target": "ts_tbl",
+          "callback": "ts_to_win_6hours"
+        },
+        {
+          "table": "prescriptions",
+          "sub_var": "drug",
+          "regex": ["hydrocortisone|fludrocortisone|dexamethasone|methylprednisolone|prednisone"],
+          "class": "rgx_itm",
+          "dur_var": "enddate",
+          "target": "ts_tbl",
+          "callback": "mimic_presc_cort"
+        }
+      ],
+      "miiv": [
+        {
+          "table": "procedureevents",
+          "sub_var": "itemid",
+          "ids": [225792, 225794],
+          "dur_var": "endtime"
+        }
+      ],
+      "eicu": [
+        {
+          "table": "respiratorycare",
+          "class": "col_itm",
+          "val_var": "respcarestatusoffset",
+          "index_var": "priorventstartoffset",
+          "dur_var": "priorventendoffset"
+        }
+      ],
+      "mimic_demo": [
+        {
+          "table": "inputevents_cv",
+          "sub_var": "itemid",
+          "ids": [30069],
+          "dur_var": "storetime",
+          "target": "ts_tbl",
+          "callback": "ts_to_win_6hours"
+        },
+        {
+          "table": "prescriptions",
+          "sub_var": "drug",
+          "regex": ["hydrocortisone|fludrocortisone|dexamethasone|methylprednisolone|prednisone"],
+          "class": "rgx_itm",
+          "dur_var": "enddate",
+          "target": "ts_tbl",
+          "callback": "mimic_presc_cort"
+        }
+      ],
+      "aumc": [
+        {
+          "table": "processitems",
+          "sub_var": "itemid",
+          "ids": [9328, 10740],
+          "dur_var": "stop"
+        }
+      ],
+      "hirid": [
+        {
+          "table": "pharma",
+          "sub_var": "pharmaid",
+          "ids": [1000383, 1000770, 1000431, 1000432, 1000433, 1000434, 1000435,
+            1000486, 1000487, 1000488, 151, 146, 1000929, 1000325, 1000769],
+          "dur_var": "enteredentryat",
+          "group_var": "infusionid",
+          "target": "ts_tbl",
+          "callback": "hirid_pharma_win6"
+        }
+      ],
+      "eicu_demo": [
+        {
+          "table": "infusiondrug",
+          "sub_var": "drugname",
+          "regex": ["methylprednisolone"],
+          "dur_var": "infusiondrugid",
+          "target": "ts_tbl",
+          "callback": "ts_to_win_6hours",
+          "class": "rgx_itm"
+        },
+        {
+          "table": "medication",
+          "sub_var": "drugname",
+          "regex": ["hydrocortisone|prednisone|methylprednisolone|solumedrol|solu-medrol|dexamethasone"],
+          "dur_var": "drugstopoffset",
+          "val_var": "medicationid",
+          "class": "rgx_itm"
+        }
+      ]
+    }
+  },
+  "trachh": {
+    "target": "win_tbl",
+    "description": "Tracheostomy",
+    "class": "lgl_cncpt",
+    "sources": {
+      "aumc": [
+        {
+          "table": "processitems",
+          "sub_var": "itemid",
+          "ids": [12635],
+          "dur_var": "stop"
+        }
+      ]
+    }
+  },
+  "alistart": {
+    "target": "ts_tbl",
+    "description": "Alistair items",
+    "sources": {
+      "miiv": [
+        {
+          "table": "chartevents",
+          "sub_var": "itemid",
+          "ids": [220339, 223848, 223849, 224419, 224684, 224685, 224686, 224687,
+224695, 224696, 224697, 224700, 224701, 224702, 224703, 224704,
+224705, 224706, 224707, 224709, 224738, 224746, 224747, 224750,
+226873, 227187]
+        }
+      ],
+      "mimic": [
+        {
+          "table": "chartevents",
+          "sub_var": "itemid",
+          "ids": [1, 60, 218, 221, 223, 436, 437, 444, 445, 448, 449, 450, 459,
+  501, 502, 503, 505, 506, 535, 543, 639, 654, 667, 668, 669, 670,
+  671, 672, 681, 682, 683, 684, 686, 1211, 1340, 1486, 1600, 1655,
+  2000, 3459, 5865, 5866]
+        }
+      ],
+      "eicu": [
+        {
+          "table": "respiratorycharting",
+          "sub_var": "respcharttypecat",
+          "ids": ["Start", "Continued", "respFlowPtVentData"]
+        }
+      ]
+    }
+  },
+  "vent_mode": {
+    "target": "ts_tbl",
+    "description": "Ventilator mode",
+    "sources": {
+      "mimic": [
+        {
+          "table": "chartevents",
+          "sub_var": "itemid",
+          "ids": [720],
+          "val_var": "cgid"
+        }
+      ]
+    }
+  },
+  "sedation": {
+    "target": "win_tbl",
+    "description": "Sedation",
+    "class": "lgl_cncpt",
+    "sources": {
+      "aumc": [
+        {
+          "table": "drugitems",
+          "sub_var": "itemid",
+          "ids": [7194, 7219, 7480, 6883, 12940, 7165, 6962, 9620, 12750, 7170,
+19163, 12402, 21242, 7014, 9146, 9048],
+          "dur_var": "stop"
+        }
+      ],
+      "hirid": [
+        {
+          "table": "pharma",
+          "sub_var": "pharmaid",
+          "ids": [442, 1001215, 1000977, 1000978, 245, 246, 1000988, 1000239,
+1000418, 1000700, 1001051, 1001054, 1000902, 251, 252, 1000976,
+1000991, 1001049, 1000847, 1000475, 1000607, 202, 1000491, 1001050,
+1001052, 1001053, 208, 1000691, 1000699],
+          "dur_var": "enteredentryat",
+          "group_var": "infusionid",
+          "target": "ts_tbl",
+          "callback": "hirid_pharma_win12"
+        }
+      ],
+      "miiv": [
+        {
+          "table": "inputevents",
+          "sub_var": "itemid",
+          "ids": [222168, 221744, 221668, 225942, 225154, 221833, 221385, 221623,
+227520, 225972],
+          "dur_var": "endtime"
+        }
+      ],
+      "mimic": [
+        {
+          "table": "inputevents_mv",
+          "sub_var": "itemid",
+          "ids": [222168, 221744, 221668, 225942, 225154, 221833, 221385, 221623,
+227520, 225972],
+          "dur_var": "endtime"
+        },
+        {
+          "table": "inputevents_cv",
+          "sub_var": "itemid",
+          "ids": [30131, 30118, 30124, 30126, 30308, 30149, 30150, 44306, 45520,
+46725, 45764, 30139, 30153, 41733, 43387],
+          "dur_var": "storetime",
+          "target": "ts_tbl",
+          "callback": "ts_to_win_12hours"
+        }
+      ]
+    }
   }
 }
