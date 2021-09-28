@@ -1,10 +1,15 @@
+
+root <- rprojroot::find_root(".git/index")
+r_dir <- file.path(root, "r")
+invisible(lapply(list.files(r_dir, full.names = TRUE), source))
+Sys.setenv(RICU_CONFIG_PATH = file.path(root, "config", "custom-dict"))
+
 library(ricu)
 library(assertthat)
 library(precrec)
 library(ggplot2)
 
-r_dir <- file.path(rprojroot::find_root(".git/index"), "r")
-invisible(lapply(list.files(r_dir, full.names = TRUE), source))
+dat <- load_concepts("gcs_sed", "miiv")
 
 gcs_val <- function(src, cohort = si_cohort(src), lwr = hours(0L), upr = hours(24L)) {
   
