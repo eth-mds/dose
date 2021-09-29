@@ -192,6 +192,7 @@
     "concepts": "rass",
     "description": "RASS as 6h windows",
     "category": "neurological",
+    "aggregate": "min",
     "callback": "sed_rass",
     "class": "rec_cncpt"
   },
@@ -215,7 +216,7 @@
     "concepts": ["egcs", "mgcs", "vgcs", "tgcs", "sed_rass"],
     "description": "GCS (with rass)",
     "category": "neurological",
-    "aggregate": ["min", "min", "min", "min", "any"],
+    "aggregate": ["min", "min", "min", "min", null],
     "callback": "gcs_cb_generator('gcs_rass', 'sed_rass')",
     "class": "rec_cncpt"
   }
