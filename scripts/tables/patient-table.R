@@ -2,6 +2,8 @@ library(ricu)
 library(stringr)
 library(magrittr)
 library(officer)
+library(flextable)
+library(assertthat)
 
 root <- rprojroot::find_root(".git/index")
 r_dir <- file.path(root, "r")
@@ -55,9 +57,9 @@ pts_source_sum <- function(source, patient_ids) {
         sf <- get_sofa(source, hours(24L))
         return(x[["callback"]](sf[get(id_var(sf)) %in% patient_ids]))
       }
-      x[["callback"]](load_concepts(x[["concept"]], source, 
+      x[["callback"]](load_concepts(x[["concept"]], source, verbose = FALSE, 
                                     patient_ids = patient_ids, 
-                                    keep_components = T))
+                                    keep_components = T), patient_ids)
       
     }
   )
@@ -91,4 +93,8 @@ res <- Reduce(
   Map(pts_source_sum, src, cohorts)
 )
 
-df_to_word(res, file.path(root, "tables", "Table1.docx"))
+df_to_word(res, file.path(root, "tables", "Table1.docx"),
+           caption = "Table 1. Patient characteristics.",
+           footnotes = c("CNS central nervous system", "IQR interquartile range", 
+                         "LOS length of stay", "NR not reported", 
+                         "SOFA Sequential Organ Failure Assessment"))

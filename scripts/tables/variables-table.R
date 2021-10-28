@@ -1,6 +1,7 @@
 library(ricu)
 library(ggplot2)
 library(assertthat)
+library(flextable)
 library(precrec)
 library(magrittr)
 library(matrixStats)
@@ -49,7 +50,7 @@ var_tbl <- function(src, cfg) {
   )
   names(df) <- c("Variable (unit)", "AUROC", "n (n/pp)", "Median [IQR]",
                  "Category")
-  if (grepl("miiv", src)) {
+  if (grepl("hirid", src)) {
     df$AUROC <- NULL
   }
   df
@@ -66,10 +67,39 @@ col_ord <- c(
 )
 
 res <- res[order(res$AUROC.x + res$AUROC.y, decreasing = TRUE), col_ord]
+hdr <- as.list(gsub("\\.[xy]", "", names(res)))
+names(hdr) <- names(res)
+
+res <- rbind(srcwrap(c("", src[-3], src, src, "")), res)
 
 df_to_word(
   res,
   path = file.path(root, "tables", "eTable1.docx"),
-  caption = "eTable 1. Comprehensive list of features that were assessed for predictive power in predicting mortality within the suspected infection cohorts. Area under receiver operator characteristic (AUC) for the MIMIC-IV and AUMC cohorts (development cohorts) is reported. Number of measurements of each feature within the first 24 hours, median and IQR values are presented for each database. The organ failure category of each biomarker is also included.",
-  landscape = TRUE
+  caption = 
+  paste0(
+    "eTable 1. Comprehensive list of features that were assessed for predictive",
+    " power in predicting mortality within the suspected infection cohorts. ",
+    "Area under receiver operator characteristic (AUC) for the MIMIC-IV and AUMC",
+    " cohorts (development cohorts) is reported. Number of measurements of each",
+    " feature within the first 24 hours, median and IQR values are presented for",
+    " each database. The organ failure category of each biomarker is also included."
+  ),
+  landscape = TRUE,
+  header = hdr,
+  fix_width = 11,
+  footnotes = c(
+    "APTT activate plasma thromboplastin time", 
+    "BP blood pressure", 
+    "CNS Central Nervous System", 
+    "GCS Glasgow Coma Scale", "FiO2 fraction of inspired oxygen", 
+    "INR international normalized ratio of prothrombine time", 
+    "MCH mean corpuscular hemoglobin", 
+    "MCHC mean corpuscular hemoglobin concentration", 
+    "MCV mean corpuscular volume", 
+    "NEQ norepinephrine equivalents (see eAppendix: Vasopressor Adjusted MAP)", 
+    "PaCO2 partial arterial CO2 pressure", 
+    "PaO2 partial arterial O2 pressure", 
+    "RBC red blood cells", "RDW red cell distribution width", 
+    "WBC white blood cells."
+  )
 )

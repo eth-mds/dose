@@ -30,7 +30,7 @@ n_measures <- function(cnc, src, patient_ids, upto = hours(24L)) {
 }
 
 concept_list <- c("pafi", "ast", "lact", 
-  "map", "norepi_equiv", "lymph", "ptt", "inr_pt",
+  "map", "norepi_equiv", "gcs_raw", "ptt", "inr_pt",
   "bun")
 
 n_measures(concept_list, "miiv", cohort[["miiv"]][["all"]])

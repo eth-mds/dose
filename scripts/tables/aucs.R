@@ -54,7 +54,7 @@ ft_compute <- function(aucs, src, type = "fx_roc") {
       
       if (src[i] == "hirid" & fold == "Development") next
 
-      x <- aucs[[src[i]]][[fold]][["fx_roc"]]
+      x <- aucs[[src[i]]][[fold]][[type]]
       res <- Reduce(
         rbind,
         lapply(
@@ -83,14 +83,29 @@ ft_compute <- function(aucs, src, type = "fx_roc") {
   }
 
   areas <- data.frame(Reduce(cbind, tilz))
-  areas <- cbind(X0 = c("", "", "Component", names(x)), areas)
+  areas <- cbind(X0 = c("", "", "Component", scwrap(names(x))), areas)
 
   ft <- flextable(areas)
   ft <- font(ft, fontname = "Calibri (Headings)", part = "all")
   ft <- fontsize(ft, size = 10, part = "all")
   ft <- delete_part(ft, part = "header")
+  ft <- merge_h(ft, i = 1:2)
 
-  ft
+  ft <- autofit(ft)
+  ft <- fit_to_width(ft, 11)
+  
+  ft <- set_caption(ft, 
+                    caption = ifelse(type == "fx_roc", 
+                                     paste0(
+                                       "eTable 2A. AUROC values per component ",
+                                       "and dataset, for validation and ",
+                                       "development cohorts"
+                                     ),
+                                     paste0(
+                                       "eTable 2B. AUPRC values per component ",
+                                       "and dataset, for validation and ",
+                                       "development cohorts"
+                                     )))
 }
 
 doc <- read_docx() %>%

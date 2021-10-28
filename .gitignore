@@ -2,3 +2,10 @@
 cache/
 *.html
 paper/
+figures/
+tables/
+*.png
+dose-dat/
+4files-dose/
+*.RData
+*.rds

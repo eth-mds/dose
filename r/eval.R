@@ -133,7 +133,7 @@ eval_score <- function(dat, label = "death", n_rep = 10L, frac = 0.75) {
 
   splits <- lapply(folds, extract_sco, dat, scores)
   labels <- lapply(folds, extract_lab, dat, label, length(scores))
-
+  #browser()
   precrec::evalmod(scores = splits, labels = labels,
                    modnames = rep(scores, n_rep),
                    dsids = rep(seq_len(n_rep), each = length(scores)))

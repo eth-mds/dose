@@ -12,24 +12,33 @@ auc_optimizer <- function(train_data, cfg, ...) {
         components <- append(components, names(cfg)[i])
 
       for (cp in components) {
-
-        print(cp)
+        
         cp.idx <- grep(paste0("^", cp, "\\."), names(train_data[[1]]))
         mat1 <- as.matrix(train_data[[1]][, cp.idx, with=FALSE])
         mat2 <- as.matrix(train_data[[2]][, cp.idx, with=FALSE])
-        cpt <- replicate(500, sample(1:ncol(mat1), 4, F))
+        cpt <- replicate(500, sample(seq_len(ncol(mat1)), 4, replace = FALSE))
 
         for (k in 1:ncol(cpt)) {
-
-          auc1 <- PRROC::roc.curve(weights.class0 = train_data[[1]][["death"]],
-            scores.class0 = rowSums(mat1[, cpt[, k]]))$auc
-
-          auc2 <- PRROC::roc.curve(weights.class0 = train_data[[2]][["death"]],
-            scores.class0 = rowSums(mat2[, cpt[, k]]))$auc
-
-          auc <- (auc1 + auc2) / 2
+          
+          auc <- 0
+          for (j in seq_along(train_data)) {
+            auc <- auc + PRROC::roc.curve(
+              weights.class0 = train_data[[1]][["death"]],
+              scores.class0 = rowSums(mat1[, cpt[, k]]))$auc
+          }
+          auc <- auc / length(train_data)
+          
+          # auc1 <- PRROC::roc.curve(weights.class0 = train_data[[1]][["death"]],
+          #   scores.class0 = rowSums(mat1[, cpt[, k]]))$auc
+          # 
+          # auc2 <- PRROC::roc.curve(weights.class0 = train_data[[2]][["death"]],
+          #   scores.class0 = rowSums(mat2[, cpt[, k]]))$auc
+          # 
+          # auc <- (auc1 + auc2) / 2
 
           if (auc > best[[sys]][["auc"]]) {
+            
+            cat("Component", cp, "of system", sys, "has AUC", round(auc, 3),"\n")
 
             best[[sys]][["auc"]] <- auc
             best[[sys]][["feature"]] <- cp

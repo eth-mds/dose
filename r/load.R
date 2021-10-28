@@ -23,6 +23,9 @@ load_data <- function(src, cfg, lwr, upr, cohort = si_cohort(src), enc = TRUE,
   load_win <- function(lwr, upr, cfg, dat, out, enc, impute_vals) {
 
     dat <- preproc(dat, cfg, lwr, upr)
+    if (nrow(dat) > 0L) {
+      dat <- dat[id_col(dat) %in% in_icu(id_col(dat), src, upr)]
+    }
     if (enc) dat <- indicator_encoding(dat, cfg)
 
     ret <- merge(dat, out, all.x = T)
@@ -46,7 +49,8 @@ load_data <- function(src, cfg, lwr, upr, cohort = si_cohort(src), enc = TRUE,
   if (file.exists(dat_fil)) {
     load(dat_fil)
   } else {
-    dat <- load_concepts(names(cfg), src, aggregate = aggreg_fun(cfg))
+    dat <- load_concepts(names(cfg), src, verbose = FALSE,
+                         aggregate = aggreg_fun(cfg, type = "list"))
     save(dat, file = dat_fil)
   }
 
@@ -54,7 +58,7 @@ load_data <- function(src, cfg, lwr, upr, cohort = si_cohort(src), enc = TRUE,
   
   dat <- dat[, c(meta_vars(dat), names(cfg)), with=FALSE]
   dat <- dat[get(id_var(dat)) %in% cohort]
-  out <- load_concepts("death", src, patient_ids = cohort)
+  out <- load_concepts("death", src, patient_ids = cohort, verbose = FALSE)
   out[, c(index_var(out)) := NULL]
 
   res <- load_wins(lwr, upr, cfg, dat, out, enc, impute_vals)
@@ -224,7 +228,8 @@ get_sofa <- function(src, wins) {
   if (file.exists(dat_fil)) {
     load(dat_fil)
   } else {
-    sf <- load_concepts("sofa", src, explicit_wins = wins, keep_components = TRUE)
+    sf <- load_concepts("sofa", src, explicit_wins = wins, keep_components = TRUE,
+                        verbose = FALSE)
     save(sf, file = dat_fil)
   }
   stopifnot(all(wins %in% index_col(sf))) # check whether everything is loaded

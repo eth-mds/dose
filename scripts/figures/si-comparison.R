@@ -24,12 +24,12 @@ diff_summary <- function(tbl1, tbl2, plt.name, plot.main) {
 
   # Chart
   venn.diagram(x = list(A, B), fill = c("lightblue", "green"),
-               category.names = c("SI + ABX", "multi-ABX"),
+               category.names = c("fluid sampling + ABX", "multi-ABX"),
                alpha = c(0.5, 0.5), lwd=0.1,
                height = 1200,
                width = 1200,
                main.cex = 2,
-               cat.pos = c(-30, 40),
+               cat.pos = c(-20, 40),
                fontfamily = "Helvetica", ## helvetica does not exist :(
                main.fontfamily = "Helvetica",
                sub.fontfamily = "Helvetica",

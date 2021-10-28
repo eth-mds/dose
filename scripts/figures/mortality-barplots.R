@@ -6,6 +6,7 @@ library(matrixStats)
 library(magrittr)
 library(cowplot)
 library(officer)
+library(stringr)
 library(flextable)
 
 root <- rprojroot::find_root(".git/index")
@@ -54,15 +55,16 @@ plt <- Reduce(rbind, plt)
 plt[, pmin := p - 1.96 * sqrt(p * (1 - p)) / sqrt(n)]
 plt[, pmax := p + 1.96 * sqrt(p * (1 - p)) / sqrt(n)]
 
-ggplot(plt, aes(x = value, y = p, fill = method)) +
+ggplot(plt, aes(x = value, y = p, fill = str_to_upper(method))) +
   geom_col(color = "black", position = position_dodge()) +
   geom_errorbar(aes(ymin = pmin, ymax = pmax, width = .2),
                 position = position_dodge(0.9)) +
   theme_bw() +
   scale_y_continuous(labels = scales::percent) +
-  facet_grid(rows = vars(component), cols = vars(source),
+  facet_grid(rows = vars(scwrap(component)), cols = vars(srcwrap(source)),
              scales = "free_y") +
+  theme(legend.position = "bottom") +
   xlab("Score") + ylab("Mortality rate")
   
-ggsave(file.path(root, "figures", "mortality_barplots.tiff"),
+ggsave(file.path(root, "figures", "eFigure5.tiff"),
        width = 10, height = 21, type = "cairo", compression = "lzw")

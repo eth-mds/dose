@@ -13,23 +13,24 @@ invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 Sys.setenv(RICU_CONFIG_PATH = file.path(root, "config", "custom-dict"))
 
 cfg <- get_config("features", config_dir())
-src <- c("miiv", "aumc", "hirid")
+src <- c("miiv", "aumc", "hirid", "mimic")
 
 ### vectorized score
-dose <- vec_score()
+dose <- vec_score(config("score"))
 
 ### determine times
 times <- hours(seq.int(6, 24, 2))
 
 evl <- list()
 for (i in seq_along(src)) {
-
-  test <- load_data(src[i], cfg, times - 24L, times,
-                    cohort = config("cohort")[[src[i]]][["test"]])
+  if (src[i] == "mimic") {
+    pids <- si_cohort(src[i])
+  } else pids <- config("cohort")[[src[i]]][["test"]]
+  
+  test <- load_data(src[i], cfg, times - 24L, times, cohort = pids)
   sf <- get_sofa(src[i], times)
 
-  evl[[i]] <- dose_otp(test, times, dose, sf,
-                       config("cohort")[[src[i]]][["test"]], src[i])
+  evl[[i]] <- dose_otp(test, times, dose, sf, pids, src[i])
 }
 
 fig1 <- otp_fig(Reduce(rbind, evl))

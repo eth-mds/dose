@@ -12,8 +12,6 @@ dose_otp <- function(test, times, dose, sofa, cohort, data_src) {
     as.integer(sub(".+, ", "", sub(" hours]$", "", modnames)))
   )]
 
-
-
   cbind(aucs, Dataset = srcwrap(data_src))
 
 }
@@ -39,7 +37,7 @@ dose_fxtp <- function(test_24, score, data_src, boot = TRUE) {
   fx_legend <- list()
   fx_roc <- list()
   fx_prc <- list()
-
+  if (data_src == "hirid") browser()
   if (boot) {
 
     scores <- list()

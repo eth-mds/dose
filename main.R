@@ -2,14 +2,16 @@
 root <- rprojroot::find_root(rprojroot::has_file(".gitignore"))
 
 # create folders if needed
-if (dir.exists(file.path(root, "tables"))) dir.create(file.path(root, "tables"))
-if (dir.exists(file.path(root, "figures"))) dir.create(file.path(root, "figures"))
+if (!dir.exists(file.path(root, "tables"))) 
+  dir.create(file.path(root, "tables"))
+if (!dir.exists(file.path(root, "figures")))
+  dir.create(file.path(root, "figures"))
 
 # generate cohort
 source(file.path(root, "scripts", "cohort-gen.R"))
 
 # construct the score
-# source(file.path(root, "scripts", "construct-score.R"))
+source(file.path(root, "scripts", "construct-score.R"))
 
 # manuscript numbers
 source(file.path(root, "scripts", "summary-stats", "manuscript-numbers.R"))
@@ -40,10 +42,13 @@ source(file.path(root, "scripts", "figures", "roc-grid.R"))
 source(file.path(root, "scripts", "figures", "si-comparison.R"))
 
 # mortality barplots in each domain
-source(file.path(root, "scripts", "figures", "mortality-barplots.R"))
+source(file.path(root, "scripts", "figures", "mortality-barplots.R")) # new
 
 # performance of scores between days 3 and 7
-source(file.path(root, "scripts", "figures", "3-to-7.R"))
+source(file.path(root, "scripts", "figures", "3-to-7.R")) # new
 
 # comparison of scores when lactate is removed
-source(file.path(root, "scripts", "figures", "without-lactate.R"))
+source(file.path(root, "scripts", "figures", "without-lactate.R")) # new
+
+# comparison of several GCS options
+source(file.path(root, "scripts", "figures", "gcs-options.R")) # new
