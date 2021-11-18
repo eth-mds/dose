@@ -119,7 +119,7 @@ sofa_eval <- function(src, res, upr, cohort = si_cohort(src)) {
 #'
 #' @return See [precrec::evalmod()]
 #'
-eval_score <- function(dat, label = "death", n_rep = 10L, frac = 0.75) {
+eval_score <- function(dat, label = "death", n_rep = 10L) {
 
   extract_sco <- function(i, x, sco) c(x[i, sco, with = FALSE])
   extract_lab <- function(i, x, lab, n) rep(list(x[[lab]][i]), n)
@@ -128,7 +128,7 @@ eval_score <- function(dat, label = "death", n_rep = 10L, frac = 0.75) {
 
   scores <- setdiff(names(dat), c(id_var(dat), label))
 
-  folds  <- replicate(n_rep, sample(nrow(dat), frac * nrow(dat)),
+  folds  <- replicate(n_rep, sample(nrow(dat), nrow(dat), replace = TRUE),
                       simplify = FALSE)
 
   splits <- lapply(folds, extract_sco, dat, scores)

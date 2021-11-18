@@ -16,7 +16,7 @@ cfg <- get_config("features", config_dir())
 src <- c("miiv", "aumc", "hirid")
 
 ### vectorized score
-dose <- vec_score()
+dose <- vec_score(config("score"))
 
 ### determine times
 times <- hours(seq.int(72, 168, 4))

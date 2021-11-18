@@ -16,7 +16,7 @@ cfg <- get_config("features", config_dir())
 score <- config("score")
 
 src <- c("miiv", "aumc", "hirid")
-fx_tim <- hours(24L)
+fx_tim <- hours(120L)
 
 fxt_test <- lapply(
   src, function(data_src) {
@@ -27,7 +27,7 @@ fxt_test <- lapply(
   }
 )
 
-fxt_plots <- Map(dose_fxtp, fxt_test, list(score), src)
+fxt_plots <- Map(dose_fxtp, fxt_test, list(score), src, boot = F)
 fxt_plots <- do.call(rbind, do.call(c, lapply(fxt_plots, `[[`, "fx_plot")))
 
 rm_rws <- which(fxt_plots$modname == "SOFA" & fxt_plots$component == "Metabolic")

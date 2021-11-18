@@ -37,7 +37,7 @@ dose_fxtp <- function(test_24, score, data_src, boot = TRUE) {
   fx_legend <- list()
   fx_roc <- list()
   fx_prc <- list()
-  if (data_src == "hirid") browser()
+  #browser()
   if (boot) {
 
     scores <- list()
