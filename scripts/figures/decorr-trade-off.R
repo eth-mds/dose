@@ -6,6 +6,7 @@ library(matrixStats)
 library(magrittr)
 library(cowplot)
 library(officer)
+library(parallel)
 
 root <- rprojroot::find_root(".git/index")
 r_dir <- file.path(root, "r")
@@ -36,14 +37,17 @@ test <- load_data(src, cfg, train_time - 24L, train_time,
                   cohort = config("cohort")[[src]][["test"]])
 
 lambda_seq <- seq(0, 1, length.out = 50)
-res <- lapply(
+res <- mclapply(
   lambda_seq, function(lam) {
-    running_decorr(train[[1]], test, cfg, score, lambda = lam)
+    running_decorr(train[[1]], test, cfg, score, lambda = lam, max_epoch = 10)
   }
 )
 res <- as.data.frame(Reduce(rbind, res))
 names(res) <- c("all", names(score))
 res <- cbind(res, lambda_seq)
+for (var in names(res)) {
+  res[[var]] <- unlist(res[[var]])
+}
 
 ggplot(reshape2::melt(res, id.vars = "lambda_seq", variable.name = "system", 
                       value.name = "auc"), 

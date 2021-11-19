@@ -49,7 +49,7 @@ auc_optimizer <- function(train_data, cfg, ...) {
 }
 
 running_decorr <- function(train_data, test_data, cfg, score, lambda = 1, 
-                           output = "vector", max_epoch = 500) {
+                           output = "vector", max_epoch = 50) {
   
   sys_components <- list()
   for (i in seq_along(cfg)) {
@@ -63,8 +63,8 @@ running_decorr <- function(train_data, test_data, cfg, score, lambda = 1,
     weights.class0 = test_data[["death"]],
     scores.class0 = rowSums(test_data[, unlist(score), with = FALSE]))$auc
   
-  res <- c(run_auc, auc_test)
-  for (epoch in 1:max_epoch) {
+  res <- NULL # c(run_auc, auc_test)
+  for (epoch in seq_len(max_epoch)) {
     
     change <- F
     
@@ -148,14 +148,15 @@ running_decorr <- function(train_data, test_data, cfg, score, lambda = 1,
     
     run_auc <- PRROC::roc.curve(
       weights.class0 = train_data[["death"]],
-      scores.class0 = rowSums(train_data[, unlist(score), with = FALSE]))$auc
+      scores.class0 = rowSums(train_data[, unlist(score), with = FALSE])
+    )$auc
     
     cmp_auc <- lapply(
       score, function(x) {
         PRROC::roc.curve(
           weights.class0 = train_data[["death"]],
-          scores.class0 = rowSums(train_data[, x, with = FALSE])$auc
-        )
+          scores.class0 = rowSums(train_data[, x, with = FALSE])
+        )$auc
       }
     )
     
