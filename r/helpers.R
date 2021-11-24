@@ -115,6 +115,7 @@ concept_translator <- list(
 
 vec_score <- function(score = config("score")) {
 
+  cfg <- config("features")
   train_t <- load_data("mimic_demo", cfg, hours(0L), hours(24L),
                        cohort = config("cohort")[["mimic_demo"]][["test"]])
   train_t <- train_t[, setdiff(names(train_t), c(id_vars(train_t), "death")),

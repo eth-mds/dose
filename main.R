@@ -44,9 +44,6 @@ source(file.path(root, "scripts", "figures", "si-comparison.R"))
 # mortality barplots in each domain
 source(file.path(root, "scripts", "figures", "mortality-barplots.R")) # new
 
-# performance of scores between days 3 and 7
-source(file.path(root, "scripts", "figures", "3-to-7.R")) # new
-
 # comparison of scores when lactate is removed
 source(file.path(root, "scripts", "figures", "without-lactate.R")) # new
 

@@ -10,7 +10,7 @@
   },
   "alp": {
     "direction": ["increasing"],
-    "lower": [104],
+    "lower": [100],
     "upper": [500],
     "step": [20],
     "category": ["liver"],

@@ -74,11 +74,10 @@ score2table <- function(score) {
     x
   }
 
-  dict <- get_config("concept-dict")
+  dict <- config("features")
   full_names <- vapply(attr(score, "concept"),
-                       function(x) stringr::str_to_title(
-                         dict[[x]][["description"]]
-                       ),
+                       function(x) paste0(dict[[x]][["full_name"]], " (",
+                                          dict[[x]][["unit"]][1], ")"),
                        character(1L))
   tbl <- data.frame(
     Feature = full_names, Dir = attr(score, "right"),
