@@ -60,7 +60,8 @@ auc_optimizer <- function(train_data, cfg, hard_thresh = 0, ...) {
 }
 
 running_decorr <- function(train_data, cfg, score, test_data = NULL, lambda = 1, 
-                           hard_thresh = 0, output = "score", max_epoch = 50) {
+                           hard_thresh = 0, output = "score", max_epoch = 50,
+                           iactive = TRUE) {
   
   sys_components <- list()
   for (i in seq_along(cfg)) {
@@ -100,9 +101,12 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL, lambda = 1,
         
       }
       
+      
+      
       for (cp in sys_components[[sys]]) {
         
-        #print(cp)
+        best_sum <- run_obj
+        
         cp.idx <- grep(paste0("^", cp, "[.]"), names(train_data[[1]]))
         mat <- lapply(train_data, 
                       function(dat) as.matrix(dat[, cp.idx, with=FALSE]))
@@ -135,16 +139,49 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL, lambda = 1,
             obj_sum <- obj_sum + obj
             
           }
-          
-          if (is.na(obj_sum) | is.na(run_obj) | is.na(obj_sum > run_obj)) browser()
-          if (obj_sum > run_obj) {
-            
-            run_obj <- obj_sum
-            score[[sys]] <- colnames(mat[[1]])[cpt[, k]]
-            change <- T
-            
+
+          if (obj_sum > best_sum) {
+            best_update <- colnames(mat[[1]])[cpt[, k]]
+            best_idx <- cpt[, k]
+            best_sum <- obj_sum
           }
           
+        }
+        
+        if (iactive & best_sum > run_obj) {
+          cat(best_update, "\n")
+          roc_old <- precrec::evalmod(
+            scores = lapply(train_data,
+                            function(x) rowSums(x[, score[[sys]], with=FALSE])),
+            labels = lapply(train_data, `[[`, "death"),
+            dsids = seq_along(train_data),
+            modnames = c("miiv", "aumc")
+          )
+          roc <- precrec::evalmod(
+            scores = lapply(seq_along(train_data),
+                            function(j) rowSums(mat[[j]][, best_idx])),
+            labels = lapply(train_data, `[[`, "death"),
+            dsids = seq_along(train_data),
+            modnames = c("miiv", "aumc")
+          )
+          print(
+            cowplot::plot_grid(
+              autoplot(roc_old, curvetype = c("ROC")),
+              autoplot(roc, curvetype = c("ROC")), labels = c("old", "new"),
+              ncol = 2L
+            )
+          )
+          cat("old ROC:", round(auc(roc_old)$aucs[c(T, F)], 3), 
+              round(run_obj / length(train_data), 3), "\n")
+          cat("new ROC:", round(auc(roc)$aucs[c(T, F)], 3), 
+              round(best_sum / length(train_data), 3), "\n")
+          acc <- as.logical(readline("Accept change (T/F)?"))
+        } else acc <- TRUE
+
+        if (acc & (best_sum > run_obj)) {
+          run_obj <- best_sum
+          score[[sys]] <- best_update
+          change <- TRUE
         }
         
         if (output == "plot") {
