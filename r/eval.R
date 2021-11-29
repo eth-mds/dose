@@ -86,7 +86,7 @@ sofa_eval <- function(src, res, upr, cohort = si_cohort(src)) {
     out    <- cohort
     cohort <- out[[id_var(out)]]
   } else {
-    out <- load_concepts("death", src, patient_ids = cohort)
+    out <- load_concepts("death", src, patient_ids = cohort, verbose = FALSE)
     out[, c(index_var(out)) := NULL]
   }
 

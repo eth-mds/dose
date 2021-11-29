@@ -30,20 +30,19 @@ otp_fig <- function(df) {
     scale_fill_discrete(name = "Score")
 }
 
-dose_fxtp <- function(test_24, score, data_src, boot = TRUE) {
+dose_fxtp <- function(test_24, score, data_src, nboot = 500) {
 
   test_24[, dose := rowSums(test_24[, unlist(score), with = FALSE])]
   fx_plot <- list()
   fx_legend <- list()
   fx_roc <- list()
   fx_prc <- list()
-  #browser()
-  if (boot) {
+
+  if (nboot > 0) {
 
     scores <- list()
     labels <- list()
     methods <- c("dose", "sofa")
-    nboot <- 500
 
     for(bt in 1:nboot) {
 
@@ -87,9 +86,9 @@ dose_fxtp <- function(test_24, score, data_src, boot = TRUE) {
 
     }
 
-    cat("AUROC for", srcwrap(data_src), "patients", round(mean(base_aucs), 3),
-        "vs.", round(mean(cmp_aucs[methods == "sofa"]), 3), "\n")
-    cat("p-value", pair.pvals[methods == "sofa"], "\n")
+    cat("for", srcwrap(data_src), "patients", round(mean(base_aucs), 3),
+        "vs.", round(mean(cmp_aucs[methods == "sofa"]), 3), ";")
+    cat("p-value", pair.pvals[methods == "sofa"], ";")
   }
 
   for (cp in names(score)) {
@@ -102,7 +101,7 @@ dose_fxtp <- function(test_24, score, data_src, boot = TRUE) {
       sofa.name <- "SOFA"
     }
 
-    if (boot) {
+    if (nboot > 0) {
       scores <- list()
       labels <- list()
       methods <- c("DOSE", "SOFA")

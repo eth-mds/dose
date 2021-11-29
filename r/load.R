@@ -22,7 +22,7 @@ load_data <- function(src, cfg, lwr, upr, cohort = si_cohort(src), enc = TRUE,
 
   load_win <- function(lwr, upr, cfg, dat, out, enc, impute_vals) {
 
-    dat <- preproc(dat, cfg, lwr, upr)
+    dat <- preproc(dat, cfg, lwr, upr, impute_vals)
     if (nrow(dat) > 0L) {
       dat <- dat[id_col(dat) %in% in_icu(id_col(dat), src, upr)]
     }

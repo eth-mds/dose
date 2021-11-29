@@ -3,37 +3,44 @@ library(ggplot2)
 library(precrec)
 library(assertthat)
 library(data.table)
+library(matrixStats)
 
-r_dir <- file.path(rprojroot::find_root(".git/index"), "r")
+root <- rprojroot::find_root(".git/index")
+r_dir <- file.path(root, "r")
 invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 
-cohort <- config("cohort")
+src <- c("miiv", "aumc", "hirid")
 
-n_measures <- function(cnc, src, patient_ids, upto = hours(24L)) {
+n_measures <- function(cnc, src, upto = hours(24L)) {
   
-  cat(srcwrap(src), "\n")
-  cat("Cohort size:", length(patient_ids), "\n")
+  cohort <- config("cohort")
+  cfg <- config("features")
   
-  for(cncpt in cnc) {
-    
-    tbl <- load_concepts(cncpt, src, patient_ids = patient_ids,
-      verbose = F)
-    tbl <- tbl[get(index_var(tbl)) <= upto]
-    
-    cat("Number of", 
-      get_config("concept-dict")[[cncpt]][["description"]],
-      "measurements upto 24 hours into ICU:",
-      nrow(tbl), "\n")
-    
+  nums <- ncoh <- list()
+  for (dsrc in src) {
+    dat_fil <- file.path(root, "dose-dat", paste0("dat_", dsrc, ".RData"))
+    load(dat_fil)
+    dat <- dat[id_col(dat) %in% cohort[[dsrc]][["all"]]]
+    ncoh[[dsrc]] <- length(cohort[[dsrc]][["all"]])
+    nums[[dsrc]] <- vapply(
+      dat[get(index_var(dat)) >= upto - hours(24L) &
+          get(index_var(dat)) <= upto, cnc, with=FALSE],
+      function(x) sum(!is.na(x)),
+      integer(1L))
   }
-  
+  cat("We evaluated", paste0(ncoh[[1]], " (", ncoh[[2]], ", ", ncoh[[3]], ")"),
+      "potentially septic patients comprising ")
+  cat(
+    paste0(nums[[1]], " (", nums[[2]], ", ", nums[[3]], ") ",
+           vapply(cnc, function(x) stringr::str_to_lower(cfg[[x]][["full_name"]]), 
+                  character(1L)), 
+           " measurements; ",
+           collapse = "")
+  )
+  cat("\n")
 }
 
-concept_list <- c("pafi", "ast", "lact", 
-  "map", "norepi_equiv", "gcs_raw", "ptt", "inr_pt",
-  "bun")
+cnc_list <- c("map", "bun", "lact", "alp", "plt", "gcs_raw", "pafi")
+n_measures(cnc_list, src)
 
-n_measures(concept_list, "miiv", cohort[["miiv"]][["all"]])
-n_measures(concept_list, "aumc", cohort[["aumc"]][["all"]])
-n_measures(concept_list, "hirid", cohort[["hirid"]][["all"]])
 

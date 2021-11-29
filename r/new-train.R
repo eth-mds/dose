@@ -102,7 +102,7 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL, lambda = 1,
       
       for (cp in sys_components[[sys]]) {
         
-        print(cp)
+        #print(cp)
         cp.idx <- grep(paste0("^", cp, "[.]"), names(train_data[[1]]))
         mat <- lapply(train_data, 
                       function(dat) as.matrix(dat[, cp.idx, with=FALSE]))

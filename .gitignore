@@ -9,3 +9,5 @@ dose-dat/
 4files-dose/
 *.RData
 *.rds
+*.DS_Store
+*.RHistory

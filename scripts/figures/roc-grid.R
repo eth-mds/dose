@@ -27,8 +27,10 @@ fxt_test <- lapply(
   }
 )
 
-fxt_plots <- Map(dose_fxtp, fxt_test, list(score), src, boot = F)
+cat("AUROC")
+fxt_plots <- Map(dose_fxtp, fxt_test, list(score), src, nboot = 1)
 fxt_plots <- do.call(rbind, do.call(c, lapply(fxt_plots, `[[`, "fx_plot")))
+cat("all p < 0.05")
 
 rm_rws <- which(fxt_plots$modname == "SOFA" & fxt_plots$component == "Metabolic")
 fxt_plots <- fxt_plots[-rm_rws, ]
