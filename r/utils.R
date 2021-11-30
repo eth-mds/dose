@@ -84,14 +84,15 @@ score2table <- function(score) {
     Thresh = attr(score, "threshold"), Points = score, stringsAsFactors = FALSE
   )
   tbl <- do.call(rbind, lapply(split(tbl, tbl[["Feature"]]), flip_sum))
-  tbl[["Thresh"]] <- paste(ifelse(tbl[["Dir"]], "&ge;", "&lt;"),
+  tbl[["Thresh"]] <- paste(ifelse(tbl[["Dir"]], "≥", "<"),
                            tbl[["Thresh"]])
-  res <- kableExtra::kable(tbl[ , c("Thresh", "Points")], row.names = FALSE,
-                           col.names = c("", "Points"), escape = FALSE)
-  ind <- rle(tbl[ , "Feature"])
-  ind <- stats::setNames(ind[["lengths"]], gsub("_", " ", ind[["values"]]))
-  res <- kableExtra::pack_rows(res, index = ind)
-  res
+  
+  names(tbl)[names(tbl) == "Thresh"] <- "Threshold"
+  res <- autofit(flextable(tbl[, c("Feature", "Threshold", "Points")]))
+  for (i in seq_along(unique(tbl$Feature))) {
+    res <- merge_at(res, i = (i-1)*4 + 1:4, j = 1)
+  }
+  hline(res, i = 4 * seq_along(unique(tbl$Feature)))
 }
 
 get_cores <- function(n_cores = NULL) {

@@ -16,7 +16,7 @@ cfg <- get_config("features", config_dir())
 src <- c("miiv", "aumc", "hirid")
 
 ### vectorized score
-score <- config("score")
+score <- config("dose")
 score[["metabolic"]] <- NULL
 dose <- vec_score(score)
 

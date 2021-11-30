@@ -30,8 +30,8 @@ for (i in seq_along(train_time)) {
 # train
 best <- auc_optimizer(train, cfg)
 score <- lapply(best, `[[`, "cols")
-decorr_score <- running_decorr(train, cfg, config("sofa"))
-config("sofa-update", decorr_score)
+decorr_score <- running_decorr(train, cfg, config("dose-manual"))
+config("dose", decorr_score)
 
 # to explore the effects of decorrelation:
 # lambda_seq <- seq(0, 1, length.out = 50)

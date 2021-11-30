@@ -15,7 +15,7 @@ invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 Sys.setenv(RICU_CONFIG_PATH = file.path(root, "config", "custom-dict"))
 
 cfg <- config("features")
-score <- config("score")
+score <- config("dose")
 
 dat <- lapply(
   src, function(data_src) {

@@ -40,7 +40,8 @@ n_measures <- function(cnc, src, upto = hours(24L)) {
   cat("\n")
 }
 
-cnc_list <- c("map", "bun", "lact", "alp", "plt", "gcs_raw", "pafi")
+cnc_list <- vapply(config("dose"), function(x) gsub("[.].*", "", x[1]), 
+                   character(1L))
 n_measures(cnc_list, src)
 
 
