@@ -89,6 +89,25 @@ score2table <- function(score) {
   
   names(tbl)[names(tbl) == "Thresh"] <- "Threshold"
   res <- autofit(flextable(tbl[, c("Feature", "Threshold", "Points")]))
+  
+  if (any(grepl("^bun", names(score[score > 0])))) {
+    footnotes <- c(
+      paste0("Blood Urea Nitrogen conversion factor from mg/dL ",
+             "to mmol/L is 0.36"),
+      "APPT activated partial thromboplastin time",
+      "FiO2 fraction of inspired oxygen",
+      "GCS Glasgow Coma Scale score",
+      "INR(PT) international normalized ratio of prothrombin time",
+      "MAP mean arterial pressure",
+      "NEQ norepinephrine equivalents",
+      "PaO2 partial arterial oxygen pressure"
+    )
+    res <- footnote(res, i = 1, j = rep(1, length(footnotes)), 
+                    value = as_paragraph(footnotes),
+                    ref_symbols = rep("", length(footnotes)),
+                    part = "header", inline = TRUE)
+  }
+  res <- fontsize(res, size = 10)
   for (i in seq_along(unique(tbl$Feature))) {
     res <- merge_at(res, i = (i-1)*4 + 1:4, j = 1)
   }

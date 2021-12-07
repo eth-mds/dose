@@ -436,8 +436,7 @@
     "upper": [200],
     "step": [5],
     "category": ["coag"],
-    "full_name": ["APTT * INR"],
-    "unit": ["sec"]
+    "full_name": ["APTT (sec) * INR(PT)"]
   },
   "map_beta50": {
     "direction": ["decreasing"],
@@ -463,8 +462,7 @@
     "upper": [80],
     "step": [5],
     "category": ["cardio"],
-    "full_name": ["MAP - 200*NEQ"],
-    "unit": ["mmHg - 200*mcg/kg/min"]
+    "full_name": ["MAP (mmHg) — 200*NEQ (mcg/kg/min)"]
   },
   "be": {
     "direction": ["decreasing"],

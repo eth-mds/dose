@@ -97,12 +97,14 @@ ft_compute <- function(aucs, src, type = "fx_roc") {
   ft <- set_caption(ft, 
                     caption = ifelse(type == "fx_roc", 
                                      paste0(
-                                       "eTable 2A. AUROC values per component ",
+                                       "eTable 2A. Area under receiver operator ", 
+                                       "characteristic (AUROC) per component ",
                                        "and dataset, for validation and ",
                                        "development cohorts"
                                      ),
                                      paste0(
-                                       "eTable 2B. AUPRC values per component ",
+                                       "eTable 2B. Area under precision recall ",
+                                       "(AUPRC) per component ",
                                        "and dataset, for validation and ",
                                        "development cohorts"
                                      )))
