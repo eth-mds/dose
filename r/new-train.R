@@ -1,3 +1,4 @@
+
 auc_optimizer <- function(train_data, cfg, hard_thresh = 0, ...) {
 
   systems <- c("cardio", "liver", "cns", "coag", "renal", "resp", "metabolic")
@@ -59,190 +60,140 @@ auc_optimizer <- function(train_data, cfg, hard_thresh = 0, ...) {
 
 }
 
-running_decorr <- function(train_data, cfg, score, test_data = NULL, lambda = 1, 
-                           hard_thresh = 0, output = "score", max_epoch = 50,
-                           iactive = TRUE) {
-  
-  sys_components <- list()
-  for (i in seq_along(cfg)) {
-    
-    catg <- cfg[[i]][["category"]]
-    sys_components[[catg]] <- c(sys_components[[catg]], names(cfg)[i])
-    
+running_decorr <- function(train_data, cfg, score, test_data = NULL,
+                           lambda = 1, thresh = 1, output = "score",
+                           n_try = 500, max_epoch = 50,
+                           accept = \(all, cmp) all > 0 || all < cmp * length(score)) {
+
+  auc_calc <- function(x, y_cols, x_col = "death", y = x) {
+    if (is.null(x)) return(NA_real_)
+    PRROC::roc.curve(weights.class0 = x[[x_col]],
+                     scores.class0 = rowSums(y[, y_cols, with = FALSE]))$auc
   }
-  
-  if (output == "plot") {
-    auc_test <- PRROC::roc.curve(
-      weights.class0 = test_data[["death"]],
-      scores.class0 = rowSums(test_data[, unlist(score), with = FALSE]))$auc
+
+  aucs_calc <- function(x, ...) {
+    if (inherits(x, "data.frame")) auc_calc(x, ...)
+    else mean(vapply(x, auc_calc, numeric(1L), ...))
   }
+
+  auc_thresh <- function(..., thresh) {
+    res <- auc_calc(...)
+    res - res * thresh
+  }
+
+  aucs_thresh <- function(y_cols, x, ...) lapply(x, auc_thresh, y_cols, ...)
+
+  res_calc <- function(train_data, test_data, score, ...) {
+    list(
+      c(
+        train = aucs_calc(train_data, unlist(score)),
+        test = if (length(test_data)) aucs_calc(test_data, unlist(score)),
+        vapply(score, \(x) aucs_calc(train_data, x), numeric(1L)),
+        list(...)
+      )
+    )
+  }
+
+  sys_components <- split(
+    names(cfg),
+    vapply(cfg, `[[`, character(1L), "category")
+  )
+
+  thresh <- lapply(score, aucs_thresh, train_data, thresh = thresh)
   
-  res <- NULL # c(run_auc, auc_test)
+  res <- res_calc(train_data, test_data, score, epoch = 0, component = "init",
+                  feature = "init")
+
   for (epoch in seq_len(max_epoch)) {
+
+    message("epoch ", epoch)
     
-    change <- F
+    change <- FALSE
     
     for (sys in names(score)) {
+
+      message("  - component `", sys, "`")
       
       run_obj <- 0
       
       for (j in seq_along(train_data)) {
-        auc <- PRROC::roc.curve(
-          weights.class0 = train_data[[j]][["death"]],
-          scores.class0 = rowSums(train_data[[j]][, unlist(score), with=F]))$auc
-        
-        auc_cmp <- PRROC::roc.curve(
-          weights.class0 = train_data[[j]][["death"]],
-          scores.class0 = rowSums(train_data[[j]][, score[[sys]], with = FALSE]))$auc
-        
-        obj <- lambda * auc + (1 - lambda) * auc_cmp
-        
+
+        auc_all <- auc_calc(train_data[[j]], unlist(score))
+        auc_cmp <- auc_calc(train_data[[j]], score[[sys]])
+
+        obj <- lambda * auc_all + (1 - lambda) * auc_cmp
         run_obj <- run_obj + obj
-        
       }
       
-      
-      
       for (cp in sys_components[[sys]]) {
+
+        message("    ", format(cp, width = max(nchar(unlist(sys_components)))),
+                " ", appendLF = FALSE)
         
         best_sum <- run_obj
         
-        cp.idx <- grep(paste0("^", cp, "[.]"), names(train_data[[1]]))
-        mat <- lapply(train_data, 
-                      function(dat) as.matrix(dat[, cp.idx, with=FALSE]))
-        cpt <- replicate(500, sample(1:ncol(mat[[1]]), 4, FALSE))
+        cp_opts <- grep(paste0("^", cp, "\\."), names(train_data[[1]]),
+                        value = TRUE)
+        cp_samp <- replicate(n_try, sample(cp_opts, 4, FALSE))
+
+        each <- floor(n_try / 50)
         
-        for (k in 1:ncol(cpt)) {
+        for (k in seq_len(n_try)) {
+
+          if (!k %% each) message(".", appendLF = FALSE)
           
           obj_sum <- 0
           
           for (j in seq_along(train_data)) {
             
-            smsys <- rowSums(
-              train_data[[j]][, unlist(score[-which(names(score) == sys)]),
-                              with=FALSE])
+            rest <- unlist(score[-which(names(score) == sys)])
             
-            auc <- PRROC::roc.curve(
-              weights.class0 = train_data[[j]][["death"]],
-              scores.class0 = smsys + rowSums(mat[[j]][, cpt[, k]]))$auc
+            auc_all <- auc_calc(train_data[[j]], c(rest, cp_samp[, k]))
+            auc_cmp <- auc_calc(train_data[[j]], cp_samp[, k])
             
-            auc_cmp <- PRROC::roc.curve(
-              weights.class0 = train_data[[j]][["death"]],
-              scores.class0 = rowSums(mat[[j]][, cpt[, k]]))$auc
-            
-            if (auc_cmp < hard_thresh) {
+            if (is.list(thresh) && auc_cmp < thresh[[sys]][[j]]) {
               obj_sum <- -Inf
+              break
             }
             
-            obj <- lambda * auc + (1 - lambda) * auc_cmp
-            
+            obj <- lambda * auc_all + (1 - lambda) * auc_cmp
             obj_sum <- obj_sum + obj
-            
           }
 
           if (obj_sum > best_sum) {
-            best_update <- colnames(mat[[1]])[cpt[, k]]
-            best_idx <- cpt[, k]
+            best_update <- cp_samp[, k]
             best_sum <- obj_sum
           }
-          
         }
-        
-        if (iactive & best_sum > run_obj) {
-          cat(best_update, "\n")
-          roc_old <- precrec::evalmod(
-            scores = lapply(train_data,
-                            function(x) rowSums(x[, score[[sys]], with=FALSE])),
-            labels = lapply(train_data, `[[`, "death"),
-            dsids = seq_along(train_data),
-            modnames = c("miiv", "aumc")
-          )
-          roc <- precrec::evalmod(
-            scores = lapply(seq_along(train_data),
-                            function(j) rowSums(mat[[j]][, best_idx])),
-            labels = lapply(train_data, `[[`, "death"),
-            dsids = seq_along(train_data),
-            modnames = c("miiv", "aumc")
-          )
-          print(
-            cowplot::plot_grid(
-              autoplot(roc_old, curvetype = c("ROC")),
-              autoplot(roc, curvetype = c("ROC")), labels = c("old", "new"),
-              ncol = 2L
-            )
-          )
-          cat("old ROC:", round(auc(roc_old)$aucs[c(T, F)], 3), 
-              round(run_obj / length(train_data), 3), "\n")
-          cat("new ROC:", round(auc(roc)$aucs[c(T, F)], 3), 
-              round(best_sum / length(train_data), 3), "\n")
-          acc <- as.logical(readline("Accept change (T/F)?"))
-        } else acc <- TRUE
 
-        if (acc & (best_sum > run_obj)) {
-          run_obj <- best_sum
-          score[[sys]] <- best_update
-          change <- TRUE
-        }
+        message("")
         
-        if (output == "plot") {
-          
-          auc_train <- PRROC::roc.curve(
-            weights.class0 = train_data[[1]][["death"]],
-            scores.class0 = rowSums(train_data[[1]][, unlist(score), with=FALSE]))$auc
-          auc_test <- PRROC::roc.curve(
-            weights.class0 = test_data[["death"]],
-            scores.class0 = rowSums(test_data[, unlist(score), with=FALSE]))$auc
-          
-          
-          res <- rbind(res, c(auc_train, auc_test))
-          
+        if (best_sum > run_obj) {
+
+          # new - old
+          all <- aucs_calc(train_data, best_update) -
+            aucs_calc(train_data, score[[sys]])
+          cmp <- (best_sum - run_obj) / length(train_data)
+
+          if (accept(all, cmp)) {
+            run_obj <- best_sum
+            score[[sys]] <- best_update
+            change <- TRUE
+          }
         }
-        
+
+        res <- append(res,
+          res_calc(train_data, test_data, score, epoch = epoch,
+                   component = sys, feature = cp)
+        )
       }
-      
     }
     
-    
     if (!change) break
-    
   }
-  
-  if (output == "plot") {
-    
-    res <- cbind(res, seq_len(nrow(res)))
-    res <- as.data.frame(res)
-    names(res) <- c("Train", "Test", "iter")
-    return(
-      ggplot(reshape2::melt(res, id.vars = "iter", variable.name = "split",
-                            value.name = "auc"), 
-             aes(x = iter, y = auc, color = split)) +
-        geom_line() + theme_bw() +
-        ggtitle("By component overfitting") +
-        xlab("Iteration") + ylab("AUROC")
-    )
-    
-  } else if (output == "aucs") {
-    
-    run_auc <- PRROC::roc.curve(
-      weights.class0 = train_data[["death"]],
-      scores.class0 = rowSums(train_data[, unlist(score), with = FALSE])
-    )$auc
-    
-    cmp_auc <- lapply(
-      score, function(x) {
-        PRROC::roc.curve(
-          weights.class0 = train_data[["death"]],
-          scores.class0 = rowSums(train_data[, x, with = FALSE])
-        )$auc
-      }
-    )
-    
-    return(c(run_auc, as.vector(cmp_auc)))
-    
-  } else {
-    
-    return(score)
-    
-  }
-  
+
+  res <- Map(\(i, typ) vapply(res, `[[`, typ, i), names(res[[1L]]), res[[1L]])
+  res <- as.data.frame(res)
+
+  structure(score, aucs = res)
 }
