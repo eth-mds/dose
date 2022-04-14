@@ -30,6 +30,8 @@ for (i in seq_along(train_time)) {
 # train
 best <- auc_optimizer(train, cfg)
 score <- lapply(best, `[[`, "cols")
+config("best-marg", score)
+
 decorr_score <- running_decorr(train, cfg, config("dose-manual"))
 config("dose", decorr_score)
 
