@@ -61,6 +61,7 @@ ggplot(plt, aes(x = value, y = p, fill = str_to_upper(method))) +
                 position = position_dodge(0.9)) +
   theme_bw() +
   scale_y_continuous(labels = scales::percent) +
+  scale_fill_discrete(name = "Score") +
   facet_grid(rows = vars(scwrap(component)), cols = vars(srcwrap(source)),
              scales = "free_y") +
   theme(legend.position = "bottom") +
