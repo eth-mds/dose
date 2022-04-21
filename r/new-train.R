@@ -72,7 +72,8 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
                            lambda = 1, thresh = .75, output = "score",
                            n_try = 500, max_epoch = 50,
                            accept = \(marg, jnt) marg > 0 || 
-                             jnt * length(score) > abs(marg)) {
+                             jnt * length(score) > abs(marg),
+                           n_cores = get_cores()) {
 
   auc_calc <- function(dat, x_cols, y_col = "death", y = dat) {
     if (is.null(dat)) return(NA_real_)
@@ -102,6 +103,32 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
         list(...)
       )
     )
+  }
+
+  one_try <- function(k, each, train_data, j, score, sys, cp_samp, thresh,
+                      prop_keep, lambda) {
+
+    if (!k %% each) message(".", appendLF = FALSE)
+
+    obj_sum <- 0
+
+    for (j in seq_along(train_data)) {
+
+      rest <- unlist(score[-which(names(score) == sys)])
+
+      auc_all <- auc_calc(train_data[[j]], c(rest, cp_samp[, k]))
+      auc_cmp <- auc_calc(train_data[[j]], cp_samp[, k])
+
+      if (is.list(thresh) && auc_cmp < prop_keep[[sys]][[j]]) {
+        obj_sum <- -Inf
+        break
+      }
+
+      obj <- lambda * auc_all + (1 - lambda) * auc_cmp
+      obj_sum <- obj_sum + obj
+    }
+
+    list(update = cp_samp[, k], sum = obj_sum)
   }
 
   sys_components <- split(
@@ -149,36 +176,18 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
                         value = TRUE)
         cp_samp <- replicate(n_try, sample(cp_opts, 4, FALSE))
 
-        each <- floor(n_try / 50)
-        
-        for (k in seq_len(n_try)) {
+        tries <- lapply(seq_len(n_try), one_try, floor(n_try / 50), train_data,
+                        j, score, sys, cp_samp, thresh, prop_keep, lambda)
 
-          if (!k %% each) message(".", appendLF = FALSE)
-          
-          obj_sum <- 0
-          
-          for (j in seq_along(train_data)) {
-            
-            rest <- unlist(score[-which(names(score) == sys)])
-            
-            auc_all <- auc_calc(train_data[[j]], c(rest, cp_samp[, k]))
-            auc_cmp <- auc_calc(train_data[[j]], cp_samp[, k])
-            
-            if (is.list(thresh) && auc_cmp < prop_keep[[sys]][[j]]) {
-              obj_sum <- -Inf
-              break
-            }
-            
-            obj <- lambda * auc_all + (1 - lambda) * auc_cmp
-            obj_sum <- obj_sum + obj
-          }
+        best <- tries[[which.max(vapply(tries, `[[`, numeric(1L), "sum"))]]
 
-          if (obj_sum > best_sum) {
-            best_update <- cp_samp[, k]
-            best_sum <- obj_sum
-          }
+        if (best[["sum"]] > best_sum) {
+          best_update <- best[["update"]]
+          best_sum <- best[["sum"]]
+        } else {
+          best_sum <- 0
         }
-
+        
         message("")
         
         if (best_sum > run_obj) {
@@ -193,11 +202,15 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
             run_obj <- best_sum
             score[[sys]] <- best_update
             change <- TRUE
+
           } else {
             
             m_marg <- max(abs(marg))
-            message("Score improvement ", round(jnt, 4), "but JoinToMarg ratio ", 
-                    round(m_marg/jnt), "rejected")
+
+            message(
+              "    -> score improvement ", round(jnt, 4),
+              " but join/marg ratio ", round(m_marg / jnt), " rejected"
+            )
           }
         }
 
