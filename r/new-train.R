@@ -176,8 +176,11 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
                         value = TRUE)
         cp_samp <- replicate(n_try, sample(cp_opts, 4, FALSE))
 
-        tries <- lapply(seq_len(n_try), one_try, floor(n_try / 50), train_data,
-                        j, score, sys, cp_samp, thresh, prop_keep, lambda)
+        tries <- parallel::mclapply(
+          seq_len(n_try), one_try, floor(n_try / 50), train_data,
+          j, score, sys, cp_samp, thresh, prop_keep, lambda,
+          mc.cores = n_cores
+        )
 
         best <- tries[[which.max(vapply(tries, `[[`, numeric(1L), "sum"))]]
 
