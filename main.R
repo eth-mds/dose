@@ -2,7 +2,7 @@
 root <- rprojroot::find_root(rprojroot::has_file(".gitignore"))
 
 # create folders if needed
-if (!dir.exists(file.path(root, "tables"))) 
+if (!dir.exists(file.path(root, "tables")))
   dir.create(file.path(root, "tables"))
 if (!dir.exists(file.path(root, "figures")))
   dir.create(file.path(root, "figures"))
@@ -49,3 +49,6 @@ source(file.path(root, "scripts", "figures", "without-lactate.R")) # new
 
 # comparison of several GCS options
 source(file.path(root, "scripts", "figures", "gcs-options.R")) # new
+
+### knit supplementary figures to a single file
+source(file.path(root, "scripts", "knit-supplement.R")) # new

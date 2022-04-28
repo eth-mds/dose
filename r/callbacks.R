@@ -130,6 +130,27 @@ aptt_inr_cb <- function (..., match_win = hours(6L), interval = NULL) {
   res
 }
 
+plt_inr_cb <- function (..., match_win = hours(6L), interval = NULL) {
+  
+  cnc <- c("plt", "inr_pt")
+  res <- ricu:::collect_dots(cnc, interval, ...)
+  assert_that(is_interval(match_win), match_win > ricu:::check_interval(res))
+  
+  on12 <- paste(meta_vars(res[[1L]]), "==", meta_vars(res[[2L]]))
+  on21 <- paste(meta_vars(res[[2L]]), "==", meta_vars(res[[1L]]))
+  
+  res <- rbind(res[[1L]][res[[2L]], on = on12, roll = match_win],
+               res[[2L]][res[[1L]], on = on21, roll = match_win])
+  res <- unique(res)
+  
+  res <- res[is.na(get(cnc[2L])), c(cnc[2L]) := 1]
+  res <- res[!is.na(get(cnc[1L])) & !is.na(get(cnc[2L])), ]
+  res <- res[, `:=`(c("plt_div_inr"), get(cnc[1L])/get(cnc[2L]))]
+  res <- rm_cols(res, cnc)
+  res
+}
+
+
 ts_to_win_12hours <- function(x, dur_var, ...) {
 
   x[, c(list(...)$val_var) := NULL]

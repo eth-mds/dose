@@ -17,7 +17,7 @@ cfg <- get_config("features", config_dir())
 
 src <- c("miiv", "aumc")
 
-train_time <- hours(24L) # hours(seq.int(24, 120, 24))
+train_time <- hours(24L)
 train <- list()
 for (i in seq_along(train_time)) {
   for (j in seq_along(src)) {
@@ -28,32 +28,10 @@ for (i in seq_along(train_time)) {
 }
 
 # train
+set.seed(2022)
 best <- auc_optimizer(train, cfg)
 score <- lapply(best, `[[`, "cols")
 config("best-marg", score)
 
-decorr_score <- running_decorr(train, cfg, config("dose-manual"))
+decorr_score <- running_decorr(train, cfg, config("best-marg"))
 config("dose", decorr_score)
-
-# to explore the effects of decorrelation:
-# lambda_seq <- seq(0, 1, length.out = 50)
-# res <- mclapply(
-#   lambda_seq, function(lam) {
-#     running_decorr(train[[1]], test, cfg, score, lambda = lam, max_epoch = 10)
-#   }
-# )
-# res <- as.data.frame(Reduce(rbind, res))
-# names(res) <- c("all", names(score))
-# res <- cbind(res, lambda_seq)
-# for (var in names(res)) {
-#   res[[var]] <- unlist(res[[var]])
-# }
-# 
-# ggplot(reshape2::melt(res, id.vars = "lambda_seq", variable.name = "system", 
-#                       value.name = "auc"), 
-#        aes(x = lambda_seq, y = auc, color = system)) +
-#   geom_line() + theme_bw() +
-#   theme(
-#     legend.position = "bottom",
-#     legend.box.background = element_rect()
-#   )

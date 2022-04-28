@@ -32,6 +32,13 @@
     "callback": "neut_lymph_cb",
     "class": "rec_cncpt"
   },
+  "plt_div_inr": {
+    "concepts": ["plt", "inr_pt"],
+    "description": "Platelets / Inter.Norm.Rat. Prothrobin Time",
+    "category": "coag",
+    "callback": "plt_inr_cb",
+    "class": "rec_cncpt"
+  },
   "four_c": {
     "concepts": ["age", "sex", "n_comb", "resp", "o2sat", "gcs", "bun", "crp"],
     "description": "SaO2/FiO2",

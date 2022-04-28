@@ -1,5 +1,5 @@
 #'* auc_optimizer finds the best marginal score *
-auc_optimizer <- function(train_data, cfg, hard_thresh = 0, ...) {
+auc_optimizer <- function(train_data, cfg, hard_thresh = 0, ntry = 1000, ...) {
 
   systems <- c("cardio", "liver", "cns", "coag", "renal", "resp", "metabolic")
   best <- lapply(systems, function(x) list(auc = 0.5))
@@ -21,7 +21,7 @@ auc_optimizer <- function(train_data, cfg, hard_thresh = 0, ...) {
         mat <- lapply(train_data, 
                       function(dat) as.matrix(dat[, cp.idx, with=FALSE]))
         # try out 500 combinations of 4 thresholds
-        cpt <- replicate(500, sample(seq_len(ncol(mat[[1]])), 4, 
+        cpt <- replicate(ntry, sample(seq_len(ncol(mat[[1]])), 4, 
                                      replace = FALSE))
         
         # iterate over the 500 attempts
@@ -70,7 +70,7 @@ auc_optimizer <- function(train_data, cfg, hard_thresh = 0, ...) {
 
 running_decorr <- function(train_data, cfg, score, test_data = NULL,
                            lambda = 1, thresh = .75, output = "score",
-                           n_try = 500, max_epoch = 50,
+                           n_try = 1000, max_epoch = 50,
                            accept = \(marg, jnt) marg > 0 || 
                              jnt * length(score) > abs(marg)) {
 
@@ -85,7 +85,6 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
     else mean(vapply(dat, auc_calc, numeric(1L), ...))
   }
   
-  #' * auc_thresh() need to check *
   auc_thresh <- function(..., thresh = 0.75) {
     res <- auc_calc(...)
     0.5 + thresh * (res - 0.5)
@@ -151,31 +150,52 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
 
         each <- floor(n_try / 50)
         
+        par_grd <- mclapply(
+          seq_len(n_try),
+          function(k) {
+            if (!k %% each) message(".", appendLF = FALSE)
+            
+            obj_sum <- 0
+            
+            for (j in seq_along(train_data)) {
+              
+              rest <- unlist(score[-which(names(score) == sys)])
+              
+              auc_all <- auc_calc(train_data[[j]], c(rest, cp_samp[, k]))
+              auc_cmp <- auc_calc(train_data[[j]], cp_samp[, k])
+              
+              if (is.list(thresh) && auc_cmp < prop_keep[[sys]][[j]]) {
+                obj_sum <- -Inf
+                break
+              }
+              
+              obj <- lambda * auc_all + (1 - lambda) * auc_cmp
+              obj_sum <- obj_sum + obj
+            }
+            obj_sum
+          }, mc.cores = n_cores()
+        )
+        
         for (k in seq_len(n_try)) {
 
-          if (!k %% each) message(".", appendLF = FALSE)
-          
-          obj_sum <- 0
-          
-          for (j in seq_along(train_data)) {
-            
-            rest <- unlist(score[-which(names(score) == sys)])
-            
-            auc_all <- auc_calc(train_data[[j]], c(rest, cp_samp[, k]))
-            auc_cmp <- auc_calc(train_data[[j]], cp_samp[, k])
-            
-            if (is.list(thresh) && auc_cmp < prop_keep[[sys]][[j]]) {
-              obj_sum <- -Inf
-              break
-            }
-            
-            obj <- lambda * auc_all + (1 - lambda) * auc_cmp
-            obj_sum <- obj_sum + obj
-          }
+          obj_sum <- par_grd[[k]]
 
           if (obj_sum > best_sum) {
-            best_update <- cp_samp[, k]
-            best_sum <- obj_sum
+            
+            marg <- aucs_calc(train_data, cp_samp[, k]) -
+              aucs_calc(train_data, score[[sys]])
+            jnt <- (obj_sum - run_obj) / length(train_data)
+            
+            if (accept(marg, jnt)) {
+              best_update <- cp_samp[, k]
+              best_sum <- obj_sum
+            } else {
+              
+              m_marg <- max(abs(marg))
+              # message("Score improvement ", round(jnt, 4), "but JoinToMarg ratio ", 
+              #         round(m_marg/jnt), " rejected")
+            }
+            
           }
         }
 
@@ -197,7 +217,7 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
             
             m_marg <- max(abs(marg))
             message("Score improvement ", round(jnt, 4), "but JoinToMarg ratio ", 
-                    round(m_marg/jnt), "rejected")
+                    round(m_marg/jnt), " rejected")
           }
         }
 

@@ -1,3 +1,4 @@
+
 srcwrap <- function(src) {
   if (length(src) > 1) return(sapply(src, srcwrap))
 
@@ -130,4 +131,10 @@ vec_score <- function(score = config("score")) {
 
   dose[names(dose) %in% unlist(score)] <- 1L
   dose
+}
+
+n_cores <- function() {
+  as.integer(
+    Sys.getenv("LSB_DJOB_NUMPROC", unset = parallel::detectCores() / 2L)
+  )
 }

@@ -277,6 +277,15 @@
     "full_name": ["Platelets"],
     "unit": ["K/uL", "G/l"]
   },
+  "plt_div_inr": {
+    "direction": ["decreasing"],
+    "lower": [10],
+    "upper": [150],
+    "step": [5],
+    "category": ["coag"],
+    "full_name": ["Platelets to INR(PT) Ratio"],
+    "unit": ["K/uL/INR", "G/l/INR"]
+  },
   "k": {
     "direction": ["increasing"],
     "lower": [4],
@@ -400,7 +409,7 @@
     "upper": [14],
     "step": [1],
     "category": ["cns"],
-    "full_name": ["GCS (non-sedated)"],
+    "full_name": ["GCS (sedation adjusted)"],
     "unit": ["points"]
   },
   "gcs_raw": {
