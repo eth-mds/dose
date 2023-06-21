@@ -11,7 +11,7 @@ invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 
 cfg <- get_config("concepts", config_dir())
 
-src <- c("miiv", "aumc", "hirid")
+src <- c("miiv", "aumc", "sic")
 cohorts <- lapply(config("cohort")[src], `[[`, "all")
 names(cohorts) <- src
 
@@ -89,7 +89,7 @@ pts_source_sum <- function(source, patient_ids) {
 }
 
 res <- Reduce(
-  function(x, y) merge(x, y, by = c("Variable", "Reported"), sort = FALSE),
+  function(x, y) merge(x, y, by = c("Variable", "Reported"), sort = FALSE, all = TRUE),
   Map(pts_source_sum, src, cohorts)
 )
 

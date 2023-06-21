@@ -13,7 +13,7 @@ invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 Sys.setenv(RICU_CONFIG_PATH = file.path(root, "config", "custom-dict"))
 
 cfg <- get_config("features", config_dir())
-src <- c("miiv", "aumc", "hirid")
+src <- c("miiv", "aumc", "sic")
 
 ### vectorized score
 dose <- vec_score(config("dose"))
@@ -23,10 +23,8 @@ times <- hours(seq.int(6, 24, 2))
 
 evl <- list()
 for (i in seq_along(src)) {
-  if (src[i] == "mimic") {
-    pids <- si_cohort(src[i])
-  } else pids <- config("cohort")[[src[i]]][["test"]]
   
+  pids <- config("cohort")[[src[i]]][["test"]]
   test <- load_data(src[i], cfg, times - 24L, times, cohort = pids)
   sf <- get_sofa(src[i], times)
 

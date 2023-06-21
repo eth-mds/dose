@@ -16,6 +16,8 @@ srcwrap <- function(src) {
     return("eICU (demo)")
   } else if (src == "aumc") {
     return("AUMC")
+  } else if (src == "sic") {
+    return("SIC")
   } else {
     return(src)
   }

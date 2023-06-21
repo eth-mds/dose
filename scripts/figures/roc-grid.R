@@ -15,7 +15,7 @@ Sys.setenv(RICU_CONFIG_PATH = file.path(root, "config", "custom-dict"))
 cfg <- get_config("features", config_dir())
 score <- config("dose")
 
-src <- c("miiv", "aumc", "hirid")
+src <- c("miiv", "aumc", "sic")
 fx_tim <- hours(24L)
 
 fxt_test <- lapply(

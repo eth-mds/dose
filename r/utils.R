@@ -17,44 +17,6 @@ aggreg_fun <- function(cfg, inc = "max", dec = "min", type = "vec") {
   res <- ifelse(dir == "increasing", inc, dec)
 }
 
-si_cohort <- function(source, age_threshold = 18L, ...) {
-
-  if (grepl("eicu", source)) {
-
-    patient_ids <- get_config("eicu-cohort", config_dir())[["eicu"]][["all"]]
-
-    susp_infec <- load_concepts("susp_inf", source, abx_min_count = 2L, 
-      positive_cultures = T, si_mode = "or", patient_ids = patient_ids, 
-      verbose = FALSE, ...)
-
-  } else if (identical(source, "hirid")) {
-
-    susp_infec <- load_concepts("susp_inf", source, abx_min_count = 2L,
-                     si_mode = "or", verbose = FALSE, ...)
-
-  } else {
-
-    susp_infec <- load_concepts("susp_inf", source, id_type = "icustay", 
-                                verbose = FALSE, ...)
-
-  }
-
-  si_lwr <- hours(48L)
-  si_upr <- hours(24L)
-  susp_infec <- susp_infec[is_true(get("susp_inf")), ]
-  susp_infec <- susp_infec[, c("susp_inf") := NULL]
-  susp_infec <- susp_infec[, c("si_lwr", "si_upr") := list(
-    get(index_var(susp_infec)) - si_lwr,
-    get(index_var(susp_infec)) + si_upr
-  )]
-
-  susp_infec <- susp_infec[(si_lwr <= 0L) & (si_upr >= 0L)]
-
-  above_age <- load_concepts("age", source, verbose = FALSE)[age >= age_threshold]
-
-  unique(intersect(id_col(susp_infec), id_col(above_age)))
-}
-
 strat_samp <- function(dat, by, frac = 0.75, replace = FALSE) {
 
   samp <- function(x, repl) sample(x, length(x) * frac, repl)

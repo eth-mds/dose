@@ -15,7 +15,7 @@ Sys.setenv(RICU_CONFIG_PATH = file.path(root, "config", "custom-dict"))
 
 cfg <- get_config("features", config_dir())
 score <- config("score")
-src <- c("miiv", "aumc", "hirid")
+src <- c("miiv", "aumc", "sic")
 
 
 fxt_dev <- lapply(
@@ -52,7 +52,7 @@ ft_compute <- function(aucs, src, type = "fx_roc") {
 
     for (fold in c("Development", "Validation")) {
       
-      if (src[i] == "hirid" & fold == "Development") next
+      if (src[i] == "sic" & fold == "Development") next
 
       x <- aucs[[src[i]]][[fold]][[type]]
       res <- Reduce(

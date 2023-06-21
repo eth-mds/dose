@@ -1,11 +1,8 @@
-library(ricu)
-library(ggplot2)
-library(assertthat)
 
 r_dir <- file.path(rprojroot::find_root(".git/index"), "r")
 invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 
-src <- c("mimic_demo", "eicu_demo", "miiv", "hirid", "aumc")
+src <- c("mimic_demo", "eicu_demo", "miiv", "aumc", "sic")
 
 set.seed(2021)
 cohort <- lapply(
@@ -22,4 +19,4 @@ cohort <- lapply(
 )
 names(cohort) <- src
 
-config("cohort", cohort)
+config("cohort", cohort)[["sic"]]

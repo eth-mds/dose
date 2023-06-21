@@ -13,7 +13,7 @@ invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 Sys.setenv(RICU_CONFIG_PATH = file.path(root, "config", "custom-dict"))
 
 cfg <- get_config("features", config_dir())
-src <- c("miiv", "aumc", "hirid")
+src <- c("miiv", "aumc", "sic")
 
 ### vectorized score
 score <- config("dose")

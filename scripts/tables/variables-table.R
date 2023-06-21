@@ -10,9 +10,8 @@ library(officer)
 root <- rprojroot::find_root(".git/index")
 r_dir <- file.path(root, "r")
 invisible(lapply(list.files(r_dir, full.names = TRUE), source))
-Sys.setenv(RICU_CONFIG_PATH = file.path(root, "config", "custom-dict"))
 
-src <- c("miiv", "aumc", "hirid")
+src <- c("miiv", "aumc", "sic")
 cfg <- get_config("features", config_dir())
 
 var_tbl <- function(src, cfg) {
@@ -50,7 +49,7 @@ var_tbl <- function(src, cfg) {
   )
   names(df) <- c("Variable (unit)", "AUROC", "n (n/pp)", "Median [IQR]",
                  "Category")
-  if (grepl("hirid", src)) {
+  if (grepl("sic", src)) {
     df$AUROC <- NULL
   }
   df
