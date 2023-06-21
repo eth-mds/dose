@@ -38,9 +38,6 @@ source(file.path(root, "scripts", "figures", "over-time.R"))
 # ROC curves across different datasets and systems
 source(file.path(root, "scripts", "figures", "roc-grid.R"))
 
-# comparison of suspected infection (SI) definitions
-source(file.path(root, "scripts", "figures", "si-comparison.R"))
-
 # mortality barplots in each domain
 source(file.path(root, "scripts", "figures", "mortality-barplots.R")) # new
 
