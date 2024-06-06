@@ -1,4 +1,5 @@
-
+*.Rproj
+*.Rout
 cache/
 *.html
 paper/
@@ -11,3 +12,4 @@ dose-dat/
 *.rds
 *.DS_Store
 *.RHistory
+.Rproj.user

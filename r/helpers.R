@@ -1,4 +1,6 @@
 
+expit <- function(x) exp(x) / (1 + exp(x))
+
 srcwrap <- function(src) {
   if (length(src) > 1) return(sapply(src, srcwrap))
 

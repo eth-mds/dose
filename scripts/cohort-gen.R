@@ -1,5 +1,6 @@
 
-r_dir <- file.path(rprojroot::find_root(".git/index"), "r")
+root <- rprojroot::find_root(".git/index")
+r_dir <- file.path(root, "r")
 invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 
 src <- c("mimic_demo", "eicu_demo", "miiv", "aumc", "sic")
