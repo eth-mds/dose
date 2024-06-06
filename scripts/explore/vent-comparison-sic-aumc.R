@@ -4,12 +4,12 @@
 
 # missigness and mortality
 src <- "miiv"
-mis <- load_data(src, cfg, hours(0L), hours(24L), 
-                 cohort = config("cohort")[[src]][["all"]], 
+mis <- load_data(src, cfg, hours(0L), hours(24L),
+                 cohort = config("cohort")[[src]][["all"]],
                  enc = FALSE, impute_vals = FALSE)
 
 df <- data.frame(
-  value = vapply(mis[, -c(id_var(mis), "death"), with = FALSE], 
+  value = vapply(mis[, -c(id_var(mis), "death"), with = FALSE],
                  function(x) mean(is.na(x)), numeric(1L)),
   var = names(mis[, -c(id_var(mis), "death"), with=FALSE]),
   variable = "miss_prop"
@@ -24,11 +24,11 @@ mort_rates <- do.call(
       res[, is_miss := is.na(get(x))]
       res <- res[, mean(death), by = "is_miss"]
       if (!is.element(TRUE, res$is_miss)) {
-        
+
         res <- rbind(res, data.table(V1 = NA, is_miss = TRUE))
       }
       if (!is.element(FALSE, res$is_miss)) {
-        
+
         res <- rbind(res, data.table(V1 = NA, is_miss = FALSE))
       }
       res <- setorderv(res, "is_miss")
@@ -71,10 +71,10 @@ subset(
 
 # ventilation comparison
 vent_per_stay <- function(src) {
-  
+
   n_coh <- nrow(load_concepts("age", src))
   vent_dur <- expand(load_concepts("vent_ind", src))
-  
+
   nrow(
     vent_dur[get(index_var(vent_dur)) >= hours(0L) &
                get(index_var(vent_dur)) < hours(24L)]
@@ -91,10 +91,10 @@ nrow(
 ) / nrow(load_concepts("age", "sic"))
 
 vent_per_stay <- function(src) {
-  
+
   n_coh <- nrow(load_concepts("age", src))
   vent_dur <- expand(load_concepts("vent_ind", src))
-  
+
   nrow(
     vent_dur[get(index_var(vent_dur)) >= hours(0L) &
                get(index_var(vent_dur)) < hours(24L)]
@@ -103,10 +103,10 @@ vent_per_stay <- function(src) {
 
 # sampling and antibiotics number
 count_per_stay <- function(src, cncpt) {
-  
+
   n_coh <- nrow(load_concepts("age", src, verbose = FALSE))
   vent_dur <- load_concepts(cncpt, src, verbose = FALSE)
-  
+
   nrow(
     vent_dur[get(index_var(vent_dur)) >= hours(0L) &
                get(index_var(vent_dur)) < hours(24L)]

@@ -1,0 +1,276 @@
+---
+title: "Units of measurement"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Units of measurement}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, setup, include = FALSE}
+root <- rprojroot::find_root(".gitignore")
+r_dir <- file.path(root, "r")
+invisible(lapply(list.files(r_dir, full.names = TRUE), source))
+```
+
+```{r, assign-srcs, echo = FALSE}
+srcs <- c("sic", "aumc", "miiv")
+```
+
+```{r, sep-itms, include = FALSE, eval = TRUE}
+assign_id <- function(id, itm, nme) `[[<-`(itm, nme, id)
+
+rep_itm <- function(itm, nme = "ids", fun = identity) {
+  as_item(lapply(fun(itm[[nme]]), assign_id, itm, nme))
+}
+
+unlst <- function(x) unlist(x, recursive = FALSE, use.names = FALSE)
+
+split_ind <- function(x, s) {
+  unlst(Map(substr, s, c(1L, x + 1L), c(x - 1L, nchar(s))))
+}
+
+greg <- function(...) {
+  res <- lapply(gregexpr(...), `attributes<-`, NULL)
+  res[vapply(res, identical, logical(1L), -1L)] <- list(integer())
+  res
+}
+
+find_paren <- function(x) {
+
+  sta <- greg("\\(", x)
+  end <- greg("\\)", x)
+
+  res <- Map(rep, 0L, nchar(x))
+  res <- Map(`[<-`, res, sta, 1L)
+
+  res <- Map(`[<-`, res, end, lapply(Map(`[`, res, end), `-`, 1L))
+  res <- lapply(res, cumsum)
+
+  res <- lapply(res, `==`, 0L)
+  res <- Map(`[<-`, res, Map(c, sta, end), NA_integer_)
+
+  res
+}
+
+expand_lst <- function(x) {
+  apply(do.call(expand.grid, x), 1L, paste0, collapse = "")
+}
+
+seq_nna <- function(x) {
+  nna <- !is.na(x)
+  x[nna] <- seq_len(sum(nna))
+  x
+}
+
+rep_paren <- function(x) {
+
+  rln <- lapply(find_paren(x), rle)
+  sqs <- lapply(lapply(rln, `[[`, "values"), seq_nna)
+  rln <- Map(`[[<-`, rln, "values", sqs)
+  rln <- lapply(rln , inverse.rle)
+
+  res <- Map(split, strsplit(x, ""), rln)
+  res <- lapply(res, lapply, paste0, collapse = "")
+
+  res <- lapply(res, lapply, split_rgx)
+  res <- lapply(res, expand_lst)
+
+  unlst(res)
+}
+
+split_pipe <- function(x) {
+
+  ind <- find_paren(x)
+
+  spt <- greg("\\|", x)
+  tdo <- lengths(spt) > 0L
+
+  spt <- Map(`[`, spt, Map(`[`, ind, spt))
+  res <- Map(split_ind, spt, x)
+
+  res[tdo] <- lapply(res[tdo], rep_paren)
+
+  unlst(res)
+}
+
+split_rgx <- function(rgx) unlst(split_pipe(rgx))
+
+split_items <- function(x) {
+
+  if (is_concept(x)) {
+    return(new_concept(lapply(x, split_items)))
+  }
+
+  if (inherits(x, "sel_itm")) {
+    return(rep_itm(x, "ids"))
+  }
+
+  if (inherits(x, "rgx_itm")) {
+    return(rep_itm(x, "regex", split_rgx))
+  }
+
+  if (inherits(x, "itm")) {
+    return(as_item(x))
+  }
+
+  if (inherits(x, "rec_cncpt")) {
+    x$items <- as_concept(lapply(x$items, split_items))
+  } else if (inherits(x, "cncpt")) {
+    x$items <- do.call("c", lapply(x$items, split_items))
+  }
+
+  x
+}
+
+empty_items <- list()
+
+report_empty <- function(dict, ...) {
+
+  itm_load_report_empty <- quote({
+
+    res <- returnValue()
+
+    if (!nrow(res) && !inherits(x, "nul_itm")) {
+
+      i <- 1
+
+      while (!identical(.GlobalEnv, env <- parent.frame(i)) &&
+             !inherits(cncpt <- get0("x", envir = env), "cncpt")) {
+        i <- i + 1
+      }
+
+      if (inherits(x, "rgx_itm")) {
+        id <- x$regex
+      } else {
+        id <- x$ids
+      }
+
+      add_empty <- list(name = cncpt$name, id = id, source = x$src,
+                        table = x$table)
+      empty_items <<- c(empty_items, list(add_empty))
+    }
+
+    res
+  })
+
+  trace(do_itm_load, exit = itm_load_report_empty, print = FALSE)
+  on.exit(untrace(do_itm_load))
+
+  load_concepts(split_items(dict), ...)
+
+  empty_items
+}
+```
+
+Next, we will investigate the number of measurements available per concept and stay day. For each stay ID and concept we calculate the number of measurements and note the stay duration. From this we can visualize how the number of measurements per day is distributed over the datasets alongside the percentage of patients that have at least one measurement available.
+
+```{r, itm-funs, eval = TRUE, echo = FALSE}
+count_meas <- function(x) {
+  x[!is.na(get(data_var(x))), list(count = .N), by = c(id_vars(x))]
+}
+
+meas_day <- function(x, los) {
+  merge(x, los)[, count := count / los_icu]
+}
+
+quants <- function(x) {
+  setNames(
+    as.list(quantile(x, c(0.05, 0.25, 0.5, 0.75, 0.95))),
+    c("min", "lwr", "med", "upr", "max")
+  )
+}
+
+meas_stats <- function(x, concept) {
+  x[, c(list(concept = concept, n_pat = .N), quants(count / los_icu)),
+    by = "source"]
+}
+
+```
+
+```{r, itm-counts, eval = TRUE, echo = FALSE}
+
+los <- load_concepts("los_icu", srcs, verbose = FALSE)
+los <- los[los_icu > 0, ]
+
+concepts <- c(
+  "alp"
+)
+
+dat <- load_concepts(concepts, srcs, merge = FALSE, verbose = FALSE)
+
+counts <- lapply(dat, count_meas)
+counts <- lapply(counts, merge, los)
+counts <- Map(meas_stats, counts, names(counts))
+counts <- do.call(rbind, counts)
+counts <- merge(counts, los[, list(total_pat = .N), by = "source"],
+                by = "source")
+
+```
+
+```{r, count-plot, echo = FALSE, fig.width = 6}
+boxplots <- ggplot(counts, aes(concept)) +
+  geom_boxplot(
+     aes(ymin = min, lower = lwr, middle = med, upper = upr, ymax = max,
+         color = source),
+     stat = "identity"
+  ) +
+  coord_flip() +
+  theme_bw() +
+  xlab("Concept name") + ylab("Measurement count per ICU day")
+
+pat_perc <- ggplot(counts, aes(concept)) +
+  geom_col(aes(y = n_pat / total_pat, fill = source), position = "dodge2") +
+  coord_flip() +
+  theme_bw() +
+  theme(axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  ylab("Percentage of patients")
+
+if (requireNamespace("cowplot", quietly = TRUE)) {
+  cowplot::plot_grid(
+    cowplot::plot_grid(
+      boxplots + theme(legend.position = "none"),
+      pat_perc + theme(legend.position = "none"),
+      nrow = 1L, rel_widths = c(0.7, 0.3)
+    ),
+    cowplot::get_legend(boxplots + theme(legend.position = "bottom")),
+    ncol = 1L, rel_heights = c(0.9, 0.1)
+  )
+} else {
+  boxplots
+  pat_perc
+}
+```
+
+Finally, we compare the densities we obtain by looking concept values per dataset, as visualized in the following plot.
+
+```{r, uom-hist, echo = FALSE, fig.width = 6}
+filter_quants <- function(x, lwr, upr) {
+
+  do_filter <- function(x) {
+    qq <- quantile(x, probs = c(lwr, upr), na.rm = TRUE)
+    x[!is.na(x) & x >= qq[1L] & x <= qq[2L]]
+  }
+
+  x[, list(val = do_filter(get(data_var(x)))), by = "source"]
+}
+
+for (x in dat) {
+
+  feat <- data_var(x)
+
+  x <- filter_quants(x, lwr = 0.025, upr = 0.975)
+
+  title <- x[, list(val = round(median(val), 2)), by = "source"]
+  title <- paste0(title$val, " (", title$source, ")", collapse = ", ")
+  title <- paste0(feat, ": ", title)
+
+  print(
+    ggplot(x, aes(x = val, fill = source)) +
+      geom_density(alpha = 0.5) +
+      xlab(feat) + theme_bw() + ggtitle(title)
+  )
+}
+```

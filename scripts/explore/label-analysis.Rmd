@@ -1,0 +1,234 @@
+---
+title: "Suspected Infection, SOFA & Sepsis-3"
+author: "Drago Plecko"
+date: "4/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(ricu)
+
+r_dir <- file.path(rprojroot::find_root(".gitignore"), "r")
+invisible(lapply(list.files(r_dir, full.names = TRUE), source))
+
+count_patients <- function(source) {
+  if (grepl("mimic|miiv", source)) return(nrow(load_id("icustays", source)))
+  if (grepl("eicu", source)) 
+    return(nrow(load_id("patient", source)))
+  if (source == "hirid") return(nrow(load_id("general", "hirid")))
+  if (source == "aumc") return(nrow(load_id("admissions", "aumc")))
+  if (source == "sic") return(nrow(load_id("cases", "sic")))
+  return(NULL)
+}
+
+plot_multi_histogram <- function(df, feature, label_column, tit, density = T) {
+  
+  plt <- ggplot(df, aes(x = eval(parse(text = feature)), 
+                        fill = eval(parse(text = label_column)))) +
+    geom_histogram(
+      alpha=0.7, position=position_dodge(), aes(y = after_stat(density)), 
+      color="black"
+    ) + 
+    geom_density(alpha=0.7) + theme_minimal(15) +
+    labs(x=feature, y = "Density") + ggtitle(tit)
+  plt <- plt + guides(fill = guide_legend(title = label_column))
+  plt
+}
+
+plot_multi_hist_bwidth <- function(df, feature, label_column, tit, density = T, 
+                                   bwidth = 1L) {
+  
+  plt <- ggplot(df, aes(x = eval(parse(text = feature)), 
+                        fill = eval(parse(text = label_column)))) +
+    geom_histogram(
+      binwidth = bwidth, alpha=0.7, position=position_dodge(), 
+      aes(y = after_stat(density)), color="black"
+    ) + 
+    theme_minimal(10) +
+    labs(x=feature, y = "Density") + ggtitle(tit) +
+    theme(legend.position="bottom")
+  plt <- plt + guides(fill=guide_legend(title=label_column))
+  if (density) plt <- plt + geom_density(alpha=0.7)
+  plt
+}
+
+src <- c("miiv", "aumc", "sic") # c("mimic_demo", "eicu_demo") # 
+```
+
+## Suspected Infection
+
+### SI spread
+
+We first look at the spread of SI times (looking only at instances which happen between -48 and 120 hours (relative to ICU stay)).
+
+```{r SIovertime, echo = FALSE, warning=T, message=F}
+si <- lapply(
+  src, function(x) {
+    if (grepl("eicu", x)) {
+      return(load_concepts("susp_inf", x, abx_min_count = 2L, si_mode = "or"))
+    } else {
+      return(load_concepts("susp_inf", x))
+    }
+  }
+)
+names(si) <- src
+
+si_ids <- lapply(si, function(tbl) unique(id_col(tbl)))
+names(si_ids) <- src
+
+df <- Reduce(
+  rbind, 
+  lapply(
+    src, 
+    function(x) {
+       data.frame(time = as.numeric(index_col(si[[x]])), source = x)
+    }
+  )
+)
+df <- df[df$time < 120 & df$time > -48, ]
+plot_multi_histogram(df, "time", "source", "Suspected Infection times")
+```
+
+---
+### SI spread
+
+We look at the prevalence of SI in the datasets:
+```{r SIprevalence, echo=FALSE, message=F}
+cnt <- sapply(src, function(x) count_patients(x))
+vapply(si, function(x) length(unique(id_col(x))), integer(1L)) / cnt * 100
+```
+
+
+### SI mortality
+
+Finally, we look at mortality within the SI group:
+
+```{r SImortality, echo=FALSE, message=F}
+tod <- lapply(src, function(x) load_concepts("death", x))
+names(tod) <- src
+mort <- function(a, b) {
+  a <- a[, head(.SD, n = 1L), by = c(id_vars(a))]
+  tbl <- merge(a, b, by = id_vars(a), all.x = TRUE)
+  return(sum(tbl[["death"]], na.rm = TRUE)/nrow(tbl))
+}
+mortSI <- Map(mort, si, tod)
+unlist(mortSI) * 100
+```
+
+
+## SOFA
+
+We look at the distribution of the SOFA score:
+
+### Distribution per component
+```{r SOFApercomponent, echo=FALSE, warning=T, message=F, cache = F}
+sf <- lapply(src, function(x) {
+  tbl <- load_concepts("sofa", x, patient_ids = si_ids[[x]], keep_components = T)
+  replace_na(tbl, 0)
+})
+
+names(sf) <- src
+
+# inspect the SOFA distributions at 6 and 15 hours
+w.hours <- c(6L, 15L)
+
+for(wh in w.hours) {
+  
+  data <- Reduce(rbind, lapply(src, function(x) {
+    tbl <- sf[[x]]
+    tbl <- tbl[get(index_var(tbl)) == w.hours[1]]
+    return(cbind(tbl, source = x))
+  }))
+  
+  fdata <- as.data.frame(data)
+
+  sofa.comps <- grep("sofa", names(data), ignore.case = T, value = T)
+  sofa.plts <- lapply(
+    sofa.comps, function(x) {
+      plot_multi_hist_bwidth(
+        fdata, x, "source", paste(x, "distribution at", wh, "hours"), 
+        density = F, bwidth = 0.5
+      )
+    }
+  )
+
+  print(cowplot::plot_grid(sofa.plts[[1]], sofa.plts[[2]], ncol = 2L))
+  print(cowplot::plot_grid(sofa.plts[[3]], sofa.plts[[4]], ncol = 2L))
+  print(cowplot::plot_grid(sofa.plts[[5]], sofa.plts[[6]], ncol = 2L))
+
+  print(
+    plot_multi_hist_bwidth(
+      fdata, "sofa", 'source', paste("sofa", "distribution at", wh, "hours"), 
+      density = T, bwidth = 0.5
+    )
+  )
+}
+```
+
+<!--
+### Predictive power for mortality
+```{r SOFAmortAUC, echo=FALSE, warning=T, message=F, eval=FALSE}
+aucdata <- Reduce(rbind, lapply(src, function(x) {
+  tbl <- sf[[x]]
+  tbl <- tbl[get(index_var(tbl)) == w.hours[[1]]]
+  tbl <- merge(tbl, tod[[x]], by = id_vars(tbl))
+  tbl[, died := as.integer(death)]
+  otc <- as.integer(tbl[["death"]])
+  aucs <- sapply(sofa.comps, function(y) {
+    PRROC::roc.curve(scores.class0 = tbl[[y]], weights.class0 = otc)$auc
+  })
+  return(data.frame(auc = aucs, component = sofa.comps, source = x))
+}))
+
+auc.plot <- ggplot(data=aucdata, aes(x=component, y=auc, fill=source)) +
+geom_bar(stat="identity", color="black", position=position_dodge())+
+  theme_minimal(15) + ggtitle("AUCs of different SOFA components for mortality") +
+  ylab("AUC") + xlab("Component") + coord_cartesian(ylim=c(0.5,0.75))
+
+auc.plot
+```
+-->
+
+<!--
+## Sepsis-3
+
+Lastly, we compare the Sepsis-3 labels across the datasets.
+
+### Sepsis-3 onset
+```{r s3onset, echo=FALSE, warning=T, message=F, eval=FALSE}
+s3 <- Map(sep3, sf, si)
+names(s3) <- src
+dfs3 <- Reduce(rbind, lapply(src, function(x) data.frame(time = as.numeric(index_col(s3[[x]])), source = x)))
+dfs3 <- dfs3[dfs3$time < 72 & dfs3$time > -24, ]
+plot_multi_histogram(dfs3, 'time', 'source', "Sepsis-3 onset times")
+```
+
+
+### Sepsis-3 cases with onset after 6 hours
+
+Total number of Sepsis-3 cases that occur after 6 hours into ICU:
+```{r s3cases, echo=FALSE, message=F, eval=FALSE}
+case.count <- lapply(s3, function(a) a[get(index_var(a)) >= 6])
+sapply(case.count, nrow)
+```
+
+### Sepsis-3 prevalence
+
+The reported prevalence is with respect to the SI group (not the whole dataset):
+```{r s3prevalence, echo=FALSE, message=F, eval=FALSE}
+sapply(s3, nrow) / sapply(si, nrow) * 100
+```
+
+### Sepsis-3 mortality
+
+The reported mortality is with respect to the SI group (not the whole dataset):
+
+```{r s3mort, echo=FALSE, message=F, eval=FALSE}
+mortS3 <- Map(mort, s3, tod)
+unlist(mortS3)*100
+```
+-->
+
+The End.
