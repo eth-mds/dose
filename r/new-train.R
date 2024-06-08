@@ -1,4 +1,4 @@
-#'* auc_optimizer finds the best marginal score *
+#' * auc_optimizer finds the best marginal score *
 auc_optimizer <- function(train_data, cfg, hard_thresh = 0, ntry = 1000, ...) {
 
   systems <- c("cardio", "liver", "cns", "coag", "renal", "resp", "metabolic")
@@ -14,35 +14,35 @@ auc_optimizer <- function(train_data, cfg, hard_thresh = 0, ntry = 1000, ...) {
         components <- append(components, names(cfg)[i])
 
       for (cp in components) {
-        
+
         # pick the column names corresponding to feature cp
-        cp.idx <- grep(paste0("^", cp, "\\."), names(train_data[[1]])) 
+        cp.idx <- grep(paste0("^", cp, "\\."), names(train_data[[1]]))
         # subset the data matrix for the feature
-        mat <- lapply(train_data, 
+        mat <- lapply(train_data,
                       function(dat) as.matrix(dat[, cp.idx, with=FALSE]))
         # try out 500 combinations of 4 thresholds
-        cpt <- replicate(ntry, sample(seq_len(ncol(mat[[1]])), 4, 
+        cpt <- replicate(ntry, sample(seq_len(ncol(mat[[1]])), 4,
                                      replace = FALSE))
-        
+
         # iterate over the 500 attempts
         for (k in 1:ncol(cpt)) {
-          
+
           auc <- 0
           for (j in seq_along(train_data)) {
             cmp_auc <- PRROC::roc.curve(
               weights.class0 = train_data[[j]][["death"]],
               scores.class0 = rowSums(mat[[j]][, cpt[, k]]))$auc
             auc <- auc + cmp_auc
-            
+
             if (cmp_auc > arch[[sys]][[j]]) arch[[sys]][[j]] <- cmp_auc
             # if worse than hard threshold, ignore
-            if (cmp_auc < hard_thresh) auc <- -Inf 
+            if (cmp_auc < hard_thresh) auc <- -Inf
           }
           auc <- auc / length(train_data)
 
           if (auc > best[[sys]][["auc"]]) {
-            
-            #cat("Component", cp, "of system", sys, "has AUC", 
+
+            #cat("Component", cp, "of system", sys, "has AUC",
             #    round(auc, 3),"\n")
 
             best[[sys]][["auc"]] <- auc
@@ -56,7 +56,7 @@ auc_optimizer <- function(train_data, cfg, hard_thresh = 0, ntry = 1000, ...) {
       }
 
   }
-  
+
   incl <- vapply(best, function(x) x$auc == 0.5, logical(1L))
   if (any(incl)) {
     cat("Could not find components for:", systems[incl], "\n")
@@ -71,7 +71,8 @@ auc_optimizer <- function(train_data, cfg, hard_thresh = 0, ntry = 1000, ...) {
 running_decorr <- function(train_data, cfg, score, test_data = NULL,
                            lambda = 1, thresh = .75, output = "score",
                            n_try = 1000, max_epoch = 50,
-                           accept = \(marg, jnt) marg > 0 || 
+                           dev_country = FALSE,
+                           accept = \(marg, jnt) marg > 0 ||
                              jnt * length(score) > abs(marg),
                            n_cores = get_cores()) {
 
@@ -85,7 +86,7 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
     if (inherits(dat, "data.frame")) auc_calc(dat, ...)
     else mean(vapply(dat, auc_calc, numeric(1L), ...))
   }
-  
+
   auc_thresh <- function(..., thresh = 0.75) {
     res <- auc_calc(...)
     0.5 + thresh * (res - 0.5)
@@ -130,104 +131,117 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
     list(update = cp_samp[, k], sum = obj_sum)
   }
 
-  sys_components <- split(
-    names(cfg),
-    vapply(cfg, `[[`, character(1L), "category")
-  )
+  if (dev_country) {
+
+    sys_components <- list(metabolic = "be", resp = "safi")
+    max_epoch <- 2L
+  } else {
+
+    sys_components <- split(
+      names(cfg),
+      vapply(cfg, `[[`, character(1L), "category")
+    )
+  }
 
   prop_keep <- lapply(config("best-marg"), aucs_thresh, train_data,
                       thresh = thresh)
-  
+
   res <- res_calc(train_data, test_data, score, epoch = 0, component = "init",
                   feature = "init")
 
   for (epoch in seq_len(max_epoch)) {
 
     message("epoch ", epoch)
-    
+
     change <- FALSE
     # iterate over components
-    for (sys in names(score)) {                                                         
+    for (sys in names(score)) {
 
       message("  - component `", sys, "`")
-      
+
       run_obj <- 0
       # iterate over training datasets
-      for (j in seq_along(train_data)) {
-        
-        # compute AUC overall and marginal
-        auc_all <- auc_calc(train_data[[j]], unlist(score))
-        auc_cmp <- auc_calc(train_data[[j]], score[[sys]])
-        
-        # take a convex combination of overall and marginal AUC
-        obj <- lambda * auc_all + (1 - lambda) * auc_cmp
-        run_obj <- run_obj + obj
+      if (dev_country) {
+
+        run_obj <- length(train_data) * 0.5
+      } else {
+
+        for (j in seq_along(train_data)) {
+
+          # compute AUC overall and marginal
+          auc_all <- auc_calc(train_data[[j]], unlist(score))
+          auc_cmp <- auc_calc(train_data[[j]], score[[sys]])
+
+          # take a convex combination of overall and marginal AUC
+          obj <- lambda * auc_all + (1 - lambda) * auc_cmp
+          run_obj <- run_obj + obj
+        }
       }
-      
+
       for (cp in sys_components[[sys]]) {
 
         message("    ", format(cp, width = max(nchar(unlist(sys_components)))),
                 " ", appendLF = FALSE)
         # take a convex combination of overall and marginal AUC
         best_sum <- run_obj
-        
+
         cp_opts <- grep(paste0("^", cp, "\\."), names(train_data[[1]]),
                         value = TRUE)
         cp_samp <- replicate(n_try, sample(cp_opts, 4, FALSE))
 
         each <- floor(n_try / 50)
-        
+
         par_grd <- mclapply(
           seq_len(n_try),
           function(k) {
             if (!k %% each) message(".", appendLF = FALSE)
-            
+
             obj_sum <- 0
-            
+
             for (j in seq_along(train_data)) {
-              
+
               rest <- unlist(score[-which(names(score) == sys)])
-              
+
               auc_all <- auc_calc(train_data[[j]], c(rest, cp_samp[, k]))
               auc_cmp <- auc_calc(train_data[[j]], cp_samp[, k])
-              
+
               if (is.list(thresh) && auc_cmp < prop_keep[[sys]][[j]]) {
                 obj_sum <- -Inf
                 break
               }
-              
+
               obj <- lambda * auc_all + (1 - lambda) * auc_cmp
               obj_sum <- obj_sum + obj
             }
             obj_sum
           }, mc.cores = n_cores()
         )
-        
+
         for (k in seq_len(n_try)) {
 
           obj_sum <- par_grd[[k]]
 
           if (obj_sum > best_sum) {
-            
+
             marg <- aucs_calc(train_data, cp_samp[, k]) -
               aucs_calc(train_data, score[[sys]])
             jnt <- (obj_sum - run_obj) / length(train_data)
-            
+
             if (accept(marg, jnt)) {
               best_update <- cp_samp[, k]
               best_sum <- obj_sum
             } else {
-              
+
               m_marg <- max(abs(marg))
-              # message("Score improvement ", round(jnt, 4), "but JoinToMarg ratio ", 
+              # message("Score improvement ", round(jnt, 4), "but JoinToMarg ratio ",
               #         round(m_marg/jnt), " rejected")
             }
-            
+
           }
         }
-        
+
         message("")
-        
+
         if (best_sum > run_obj) {
 
           # new - old
@@ -236,17 +250,17 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
           jnt <- (best_sum - run_obj) / length(train_data)
 
           if (accept(marg, jnt)) {
-            
+
             run_obj <- best_sum
             score[[sys]] <- best_update
             change <- TRUE
 
           } else {
-            
+
             m_marg <- max(abs(marg))
-            message("Score improvement ", round(jnt, 4), "but JoinToMarg ratio ", 
+            message("Score improvement ", round(jnt, 4), "but JoinToMarg ratio ",
                     round(m_marg/jnt), " rejected")
-            
+
           }
         }
 
@@ -256,7 +270,7 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
         )
       }
     }
-    
+
     if (!change) break
   }
 

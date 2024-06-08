@@ -432,7 +432,7 @@
   },
   "safi": {
     "direction": ["decreasing"],
-    "lower": [0],
+    "lower": [50],
     "upper": [400],
     "step": [50],
     "category": ["resp"],

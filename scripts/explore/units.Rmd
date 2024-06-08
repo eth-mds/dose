@@ -194,7 +194,7 @@ los <- load_concepts("los_icu", srcs, verbose = FALSE)
 los <- los[los_icu > 0, ]
 
 concepts <- c(
-  "alp"
+  "bun"
 )
 
 dat <- load_concepts(concepts, srcs, merge = FALSE, verbose = FALSE)

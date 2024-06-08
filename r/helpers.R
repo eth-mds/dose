@@ -19,7 +19,7 @@ srcwrap <- function(src) {
   } else if (src == "aumc") {
     return("AUMC")
   } else if (src == "sic") {
-    return("SIC")
+    return("SICdb")
   } else {
     return(src)
   }
@@ -122,16 +122,13 @@ vec_score <- function(score = config("score")) {
 
   cfg <- config("features")
   train_t <- load_data("mimic_demo", cfg, hours(0L), hours(24L),
-                       cohort = config("cohort")[["mimic_demo"]][["test"]])
+                       cohort = miiv$icustays$stay_id)
   train_t <- train_t[, setdiff(names(train_t), c(id_vars(train_t), "death")),
                      with = F]
   dose <- rep(0, ncol(train_t))
   names(dose) <- names(train_t)
-  for (at in c("concept", "threshold", "right")) {
-
+  for (at in c("concept", "threshold", "right"))
     attr(dose, at) <- as.vector(sapply(train_t, attr, at))
-
-  }
 
   dose[names(dose) %in% unlist(score)] <- 1L
   dose

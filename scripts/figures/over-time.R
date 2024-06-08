@@ -1,16 +1,7 @@
-library(ricu)
-library(ggplot2)
-library(assertthat)
-library(precrec)
-library(matrixStats)
-library(magrittr)
-library(cowplot)
-library(officer)
 
 root <- rprojroot::find_root(".git/index")
 r_dir <- file.path(root, "r")
 invisible(lapply(list.files(r_dir, full.names = TRUE), source))
-Sys.setenv(RICU_CONFIG_PATH = file.path(root, "config", "custom-dict"))
 
 cfg <- get_config("features", config_dir())
 src <- c("miiv", "aumc", "sic")
@@ -23,7 +14,7 @@ times <- hours(seq.int(6, 24, 2))
 
 evl <- list()
 for (i in seq_along(src)) {
-  
+
   pids <- config("cohort")[[src[i]]][["test"]]
   test <- load_data(src[i], cfg, times - 24L, times, cohort = pids)
   sf <- get_sofa(src[i], times)

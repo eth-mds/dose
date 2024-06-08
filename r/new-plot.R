@@ -17,6 +17,11 @@ dose_otp <- function(test, times, dose, sofa, cohort, data_src) {
 }
 
 otp_fig <- function(df) {
+
+  df$curvetypes <- factor(df$curvetypes, levels = c("ROC", "PRC"))
+  df$type <- ifelse(df$type == "DOSE", "SOFA 2.0", "SOFA")
+  df$type <- factor(df$type, levels = c("SOFA 2.0", "SOFA"))
+
   ggplot(df, aes(x = time, y = mean, color = type, fill = type)) +
     geom_line() +
     geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.3, linetype = 0) +

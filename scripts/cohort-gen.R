@@ -5,7 +5,7 @@ invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 
 src <- c("mimic_demo", "eicu_demo", "miiv", "aumc", "sic")
 
-set.seed(2021)
+set.seed(2024)
 cohort <- lapply(
   src,
   function(dsrc) {
@@ -19,5 +19,4 @@ cohort <- lapply(
   }
 )
 names(cohort) <- src
-
-config("cohort", cohort)[["sic"]]
+config("cohort", cohort)

@@ -7,7 +7,7 @@ figures/
 tables/
 *.png
 dose-dat/
-4files-dose/
+4files/
 *.RData
 *.rds
 *.DS_Store

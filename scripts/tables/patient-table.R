@@ -1,9 +1,3 @@
-library(ricu)
-library(stringr)
-library(magrittr)
-library(officer)
-library(flextable)
-library(assertthat)
 
 root <- rprojroot::find_root(".git/index")
 r_dir <- file.path(root, "r")
@@ -50,41 +44,41 @@ pts_source_sum <- function(source, patient_ids) {
   tbl_list <- lapply(
     vars,
     function(x) {
-      
+
       if (source == "hirid" & x[["concept"]] == "adm") {
         return(list(c("med", "surg", "other"), "%", rep(NA_integer_, 3)))
       } else if (x[["concept"]] == "sofa") {
         sf <- get_sofa(source, hours(24L))
         return(x[["callback"]](sf[get(id_var(sf)) %in% patient_ids]))
       }
-      x[["callback"]](load_concepts(x[["concept"]], source, verbose = FALSE, 
-                                    patient_ids = patient_ids, 
+      x[["callback"]](load_concepts(x[["concept"]], source, verbose = FALSE,
+                                    patient_ids = patient_ids,
                                     keep_components = T), patient_ids)
-      
+
     }
   )
-  
+
   pts_tbl <- Reduce(rbind,
     lapply(
       tbl_list,
       function(x) data.frame(Reduce(cbind, x), stringsAsFactors = FALSE)
     )
   )
-  
+
   cohort_info <- as.data.frame(cbind("Cohort size", "n", length(patient_ids)),
                                stringsAsFactors = FALSE)
   names(cohort_info) <- names(pts_tbl)
-  
+
   pts_tbl <- rbind(
     cohort_info,
     pts_tbl
   )
-  
+
   names(pts_tbl) <- c("Variable", "Reported", srcwrap(source))
-  pts_tbl$Variable <- vapply(as.character(pts_tbl$Variable), 
+  pts_tbl$Variable <- vapply(as.character(pts_tbl$Variable),
                                      function(x) concept_translator[[x]],
                                      character(1L))
-  
+
   pts_tbl
 }
 
@@ -95,6 +89,6 @@ res <- Reduce(
 
 df_to_word(res, file.path(root, "tables", "Table1.docx"),
            caption = "Table 1. Patient characteristics.",
-           footnotes = c("CNS central nervous system", "IQR interquartile range", 
-                         "LOS length of stay", "NR not reported", 
+           footnotes = c("CNS central nervous system", "IQR interquartile range",
+                         "LOS length of stay", "NR not reported",
                          "SOFA Sequential Organ Failure Assessment"))

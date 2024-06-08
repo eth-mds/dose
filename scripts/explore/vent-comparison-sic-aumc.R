@@ -81,25 +81,20 @@ vent_per_stay <- function(src) {
   ) / n_coh
 }
 
-vent_per_stay("aumc")
-
-vent_dur <- load_concepts("fio2", "sic")
-vent_dur <- vent_dur[fio2 > 21]
-nrow(
-  vent_dur[get(index_var(vent_dur)) >= hours(0L) &
-             get(index_var(vent_dur)) < hours(24L)]
-) / nrow(load_concepts("age", "sic"))
-
-vent_per_stay <- function(src) {
+vent_per_stay_sic <- function(src) {
 
   n_coh <- nrow(load_concepts("age", src))
-  vent_dur <- expand(load_concepts("vent_ind", src))
+  vent_dur <- load_concepts("min_vol", src)
 
   nrow(
     vent_dur[get(index_var(vent_dur)) >= hours(0L) &
                get(index_var(vent_dur)) < hours(24L)]
   ) / n_coh
 }
+
+vent_per_stay("aumc")
+vent_per_stay("sic")
+vent_per_stay_sic("sic")
 
 # sampling and antibiotics number
 count_per_stay <- function(src, cncpt) {

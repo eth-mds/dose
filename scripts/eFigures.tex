@@ -1,0 +1,123 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{geometry} \usepackage{array} \usepackage{longtable} \usepackage{booktabs}
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={~ eFigures},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\renewcommand{\figurename}{eFigure}
+
+\title{SOFA 2.0: THE DEVELOPMENT AND VALIDATION OF A DATA-DRIVEN UPDATE TO THE SEQUENTIAL ORGAN FAILURE ASSESSMENT (SOFA) SCORE \\ eFigures}
+\author{}
+\date{\vspace{-2.5em}}
+
+\begin{document}
+\maketitle
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{../figures/gcs-options.png}
+    \caption{Comparison of sedation and imputation options for the central nervous system component. In a post-hoc analysis, we inspected the predictive performance of three imputation techniques: (i) setting the GCS score to the maximal value whenever the patient is sedated; (ii) for the duration of the sedation window, using the latest available GCS value prior to the sedation window; (iii) ignoring the sedation information and using the raw GCS values as recorded in the databases, and two approaches to sedation: (a) medication based; (b) RASS based; (c) ignoring sedation. Our findings show that raw GCS values with sedation status not taken into account achieve the highest marginal AUC for predicting mortality.}
+\end{figure}
+
+%\newpage
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{../figures/otp-wo-lactate.png}
+    \caption{Over-time performance of SOFA 2.0 and SOFA scores, with the metabolic component of SOFA 2.0 removed. The two scores are evaluated in terms of area under receiver operator characteristic (AUROC) and area under precision recall (AUPRC) for predicting mortality, during the first day of ICU stay, in time steps of 2 hours, with the metabolic component of the SOFA 2.0 score not included. The 95\% confidence intervals for the areas under the curve, obtained using bootstrap, are plotted in every subplot. SOFA 2.0 still outperforms SOFA in each metric, time point and dataset.}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{../figures/otp-lmic.png}
+    \caption{Over-time performance of SOFA 2.0-LMIC and SOFA scores. The two scores are evaluated in terms of area under receiver operator characteristic (AUROC) and area under precision recall (AUPRC) for predicting mortality, during the first day of ICU stay, in time steps of 2 hours, with the metabolic component of SOFA 2.0-LMIC based on base excess, and the respiratory component on SpO2/FiO2 ratio. The 95\% confidence intervals for the areas under the curve, obtained using bootstrap, are plotted in every subplot.}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.87\textwidth]{../figures/roc-grid.png}
+    \caption{Performance of SOFA 2.0 and SOFA scores at 24 hours into ICU. Each component of SOFA 2.0 is compared to the corresponding component of SOFA, by plotting the receiver operator characteristic (ROC) curve at 24 hours into ICU stay. Each row of the figure corresponds to an organ failure category (cardiovascular, coagulation, hepatic, immunological, metabolic, renal, respiratory) and each row corresponds to a dataset. SOFA 2.0 outperforms SOFA in almost every component and dataset.}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.85\textwidth]{../figures/mortality-barplots.png}
+    \caption{Mortality barplots for each component and dataset. For each organ failure component, we divide the study cohort into groups of patients who had a SOFA 2.0 score of 0, 1, 2, 3, or 4 at 24 hours into ICU, and calculate the mortality rate in each group. The same was repeated for all the values and components of the SOFA score. The mortality rate for each group, dataset and component are presented as barplots, where each row of the figure corresponds to an organ failure category (cardiovascular, coagulation, hepatic, immunological, metabolic, renal, respiratory) and each row corresponds to a dataset.}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{../figures/calib-grid-dose.png}
+    \caption{Calibration curves of SOFA 2.0 across development (vertical) and validation (horizontal) datasets. For each development cohort (MIMIC-IV, AUMC), we compute the SOFA 2.0 values. Based on these, we fit a logistic regression model (death ~ SOFA 2.0 + Intercept), and the fitted probabilities are used as the predicted probabilities. The fitted probabilities are then assessed for calibration on the validation cohorts (MIMIC-IV, AUMC, SICdb).}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{../figures/calib-grid-sofa.png}
+    \caption{Calibration curves of SOFA across development (vertical) and validation (horizontal) datasets. For each development cohort (MIMIC-IV, AUMC), we compute the SOFA values. Based on these, we fit a logistic regression model (death ~ SOFA + Intercept), and the fitted probabilities are used as the predicted probabilities. The fitted probabilities are then assessed for calibration on the validation cohorts (MIMIC-IV, AUMC, SICdb).}
+\end{figure}
+
+\end{document}

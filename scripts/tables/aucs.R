@@ -1,22 +1,11 @@
-library(ricu)
-library(ggplot2)
-library(assertthat)
-library(precrec)
-library(matrixStats)
-library(magrittr)
-library(cowplot)
-library(officer)
-library(flextable)
 
 root <- rprojroot::find_root(".git/index")
 r_dir <- file.path(root, "r")
 invisible(lapply(list.files(r_dir, full.names = TRUE), source))
-Sys.setenv(RICU_CONFIG_PATH = file.path(root, "config", "custom-dict"))
 
 cfg <- get_config("features", config_dir())
 score <- config("score")
 src <- c("miiv", "aumc", "sic")
-
 
 fxt_dev <- lapply(
   src, function(data_src) {
@@ -51,7 +40,7 @@ ft_compute <- function(aucs, src, type = "fx_roc") {
   for (i in seq_along(src)) {
 
     for (fold in c("Development", "Validation")) {
-      
+
       if (src[i] == "sic" & fold == "Development") next
 
       x <- aucs[[src[i]]][[fold]][[type]]
@@ -73,7 +62,7 @@ ft_compute <- function(aucs, src, type = "fx_roc") {
         )
       )
 
-      res <- rbind(c("DOSE", "SOFA"), res)
+      res <- rbind(c("SOFA 2.0", "SOFA"), res)
       res <- rbind(c(fold, fold), res)
       res <- rbind(srcwrap(c(src[i], src[i])), res)
       tilz <- c(tilz, list(res))
@@ -93,11 +82,11 @@ ft_compute <- function(aucs, src, type = "fx_roc") {
 
   ft <- autofit(ft)
   ft <- fit_to_width(ft, 11)
-  
-  ft <- set_caption(ft, 
-                    caption = ifelse(type == "fx_roc", 
+
+  ft <- set_caption(ft,
+                    caption = ifelse(type == "fx_roc",
                                      paste0(
-                                       "eTable 2A. Area under receiver operator ", 
+                                       "eTable 2A. Area under receiver operator ",
                                        "characteristic (AUROC) per component ",
                                        "and dataset, for validation and ",
                                        "development cohorts"

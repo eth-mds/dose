@@ -1,11 +1,3 @@
-library(ricu)
-library(ggplot2)
-library(assertthat)
-library(flextable)
-library(precrec)
-library(magrittr)
-library(matrixStats)
-library(officer)
 
 root <- rprojroot::find_root(".git/index")
 r_dir <- file.path(root, "r")
@@ -61,7 +53,7 @@ res <- Reduce(function(x, y) merge(x, y, by = c("Variable (unit)", "Category")),
 
 col_ord <- c(
   "Variable (unit)", grep("AUROC", names(res), value = TRUE),
-  grep("^n ", names(res), value = TRUE), 
+  grep("^n ", names(res), value = TRUE),
   grep("Median", names(res), value = TRUE), "Category"
 )
 
@@ -74,7 +66,7 @@ res <- rbind(srcwrap(c("", src[-3], src, src, "")), res)
 df_to_word(
   res,
   path = file.path(root, "tables", "eTable1.docx"),
-  caption = 
+  caption =
   paste0(
     "eTable 1. Comprehensive list of features that were assessed for predictive",
     " power in predicting mortality within the suspected infection cohorts. ",
@@ -87,18 +79,18 @@ df_to_word(
   header = hdr,
   fix_width = 11,
   footnotes = c(
-    "APTT activate plasma thromboplastin time", 
-    "BP blood pressure", 
-    "CNS Central Nervous System", 
-    "GCS Glasgow Coma Scale", "FiO2 fraction of inspired oxygen", 
-    "INR international normalized ratio of prothrombine time", 
-    "MCH mean corpuscular hemoglobin", 
-    "MCHC mean corpuscular hemoglobin concentration", 
-    "MCV mean corpuscular volume", 
-    "NEQ norepinephrine equivalents (see eAppendix: Vasopressor Adjusted MAP)", 
-    "PaCO2 partial arterial CO2 pressure", 
-    "PaO2 partial arterial O2 pressure", 
-    "RBC red blood cells", "RDW red cell distribution width", 
+    "APTT activate plasma thromboplastin time",
+    "BP blood pressure",
+    "CNS Central Nervous System",
+    "GCS Glasgow Coma Scale", "FiO2 fraction of inspired oxygen",
+    "INR international normalized ratio of prothrombine time",
+    "MCH mean corpuscular hemoglobin",
+    "MCHC mean corpuscular hemoglobin concentration",
+    "MCV mean corpuscular volume",
+    "NEQ norepinephrine equivalents (see eAppendix: Vasopressor Adjusted MAP)",
+    "PaCO2 partial arterial CO2 pressure",
+    "PaO2 partial arterial O2 pressure",
+    "RBC red blood cells", "RDW red cell distribution width",
     "WBC white blood cells."
   )
 )

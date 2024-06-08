@@ -1,18 +1,7 @@
-library(ricu)
-library(ggplot2)
-library(assertthat)
-library(precrec)
-library(matrixStats)
-library(magrittr)
-library(cowplot)
-library(officer)
-library(parallel)
 
 root <- rprojroot::find_root(".git/index")
 r_dir <- file.path(root, "r")
 invisible(lapply(list.files(r_dir, full.names = TRUE), source))
-Sys.setenv(RICU_CONFIG_PATH = file.path(root, "config", "custom-dict"))
-
 cfg <- get_config("features", config_dir())
 
 src <- c("miiv", "aumc")
@@ -27,11 +16,16 @@ for (i in seq_along(train_time)) {
   }
 }
 
-# train
-set.seed(2022)
+# train marginally optimal score
+set.seed(2024)
 best <- auc_optimizer(train, cfg)
 score <- lapply(best, `[[`, "cols")
 config("best-marg", score)
 
+# train overall optimal score
 decorr_score <- running_decorr(train, cfg, config("best-marg"))
 config("dose", decorr_score)
+
+# replace (lactate, pafi) with (base excess, spfi)
+decorr_score_II <- running_decorr(train, cfg, config("dose"), dev_country = TRUE)
+config("dose-II", decorr_score_II)

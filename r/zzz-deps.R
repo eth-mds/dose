@@ -1,7 +1,4 @@
 
-Sys.setenv("RICU_CONFIG_PATH" = file.path(root, "config"))
-Sys.setenv("RICU_SRC_LOAD" =
-             "mimic,miiv,aumc,hirid,eicu,eicu_demo,mimic_demo,sic")
 library(ricu)
 library(ggplot2)
 library(assertthat)
@@ -9,3 +6,10 @@ library(data.table)
 library(mgcv)
 library(matrixStats)
 library(CalibrationCurves)
+library(precrec)
+library(magrittr)
+library(cowplot)
+library(officer)
+library(parallel)
+library(flextable)
+library(stringr)

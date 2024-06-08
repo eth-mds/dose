@@ -1,18 +1,7 @@
-library(ricu)
-library(ggplot2)
-library(assertthat)
-library(precrec)
-library(matrixStats)
-library(magrittr)
-library(cowplot)
-library(officer)
-library(stringr)
-library(flextable)
 
 root <- rprojroot::find_root(".git/index")
 r_dir <- file.path(root, "r")
 invisible(lapply(list.files(r_dir, full.names = TRUE), source))
-Sys.setenv(RICU_CONFIG_PATH = file.path(root, "config", "custom-dict"))
 
 cfg <- config("features")
 score <- config("dose")
@@ -61,11 +50,12 @@ ggplot(plt, aes(x = value, y = p, fill = str_to_upper(method))) +
                 position = position_dodge(0.9)) +
   theme_bw() +
   scale_y_continuous(labels = scales::percent) +
-  scale_fill_discrete(name = "Score") +
+  scale_fill_discrete(name = "Score",
+                      labels = c("SOFA 2.0", "SOFA")) +
   facet_grid(rows = vars(scwrap(component)), cols = vars(srcwrap(source)),
              scales = "free_y") +
   theme(legend.position = "bottom") +
   xlab("Score") + ylab("Mortality rate")
-  
-ggsave(file.path(root, "figures", "eFigure5.tiff"),
-       width = 10, height = 21, type = "cairo", compression = "lzw")
+
+ggsave(file.path(root, "figures", "mortality-barplots.png"),
+       width = 15, height = 21)

@@ -1,16 +1,7 @@
-library(ricu)
-library(ggplot2)
-library(assertthat)
-library(precrec)
-library(matrixStats)
-library(magrittr)
-library(cowplot)
-library(officer)
 
 root <- rprojroot::find_root(".git/index")
 r_dir <- file.path(root, "r")
 invisible(lapply(list.files(r_dir, full.names = TRUE), source))
-Sys.setenv(RICU_CONFIG_PATH = file.path(root, "config", "custom-dict"))
 
 cfg <- get_config("features", config_dir())
 score <- config("dose")
@@ -32,7 +23,6 @@ fxt_plots <- Map(dose_fxtp, fxt_test, list(score), src, nboot = 500)
 cat("all p < 0.05")
 fxt_plots <- do.call(rbind, do.call(c, lapply(fxt_plots, `[[`, "fx_plot")))
 
-
 rm_rws <- which(fxt_plots$modname == "SOFA" & fxt_plots$component == "Metabolic")
 fxt_plots <- fxt_plots[-rm_rws, ]
 
@@ -42,9 +32,9 @@ efig1 <- ggplot(subset(fxt_plots, curvetype == "ROC"), aes(x = x, y = y)) +
   facet_grid(rows = vars(component), cols = vars(source)) +
   theme_bw() +
   theme(legend.position = "bottom", legend.title = element_blank()) +
+  scale_color_discrete(labels = c("SOFA 2.0", "SOFA")) +
   xlab("1 - Specificity") +
   ylab("Sensitivity")
 
-ggsave(file.path(root, "figures", "eFigure4.tiff"), plot = efig1,
-       width = 8.25, height = 11.75, type = "cairo", compression = "lzw",
-       bg = "white")
+ggsave(file.path(root, "figures", "roc-grid.png"), plot = efig1,
+       width = 8.25, height = 11.75, bg = "white")

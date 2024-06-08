@@ -55,7 +55,7 @@ load_data <- function(src, cfg, lwr, upr, cohort = si_cohort(src), enc = TRUE,
   }
 
   stopifnot(all(names(cfg) %in% names(dat)))
-  
+
   dat <- dat[, c(meta_vars(dat), names(cfg)), with=FALSE]
   dat <- dat[get(id_var(dat)) %in% cohort]
   out <- load_concepts("death", src, patient_ids = cohort, verbose = FALSE)
@@ -234,5 +234,4 @@ get_sofa <- function(src, wins) {
   }
   stopifnot(all(wins %in% index_col(sf))) # check whether everything is loaded
   sf[get(index_var(sf)) %in% wins]
-
 }
