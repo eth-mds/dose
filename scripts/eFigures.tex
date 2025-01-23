@@ -69,7 +69,7 @@
 
 \renewcommand{\figurename}{eFigure}
 
-\title{SOFA 2.0: THE DEVELOPMENT AND VALIDATION OF A DATA-DRIVEN UPDATE TO THE SEQUENTIAL ORGAN FAILURE ASSESSMENT (SOFA) SCORE \\ eFigures}
+\title{A FRAMEWORK AND ANALYTICAL EXPLORATION FOR A DATA-DRIVEN UPDATE OF THE SEQUENTIAL ORGAN FAILURE ASSESSMENT (SOFA) SCORE IN SEPSIS \\ eFigures}
 \author{}
 \date{\vspace{-2.5em}}
 
@@ -79,7 +79,18 @@
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{../figures/gcs-options.png}
-    \caption{Comparison of sedation and imputation options for the central nervous system component. In a post-hoc analysis, we inspected the predictive performance of three imputation techniques: (i) setting the GCS score to the maximal value whenever the patient is sedated; (ii) for the duration of the sedation window, using the latest available GCS value prior to the sedation window; (iii) ignoring the sedation information and using the raw GCS values as recorded in the databases, and two approaches to sedation: (a) medication based; (b) RASS based; (c) ignoring sedation. Our findings show that raw GCS values with sedation status not taken into account achieve the highest marginal AUC for predicting mortality.}
+    \caption{Comparison of sedation and imputation options for the central
+    nervous system component. In a post-hoc analysis, we inspected the predictive
+    performance of three imputation techniques: (i) setting the GCS score to the
+    maximal value whenever the patient is sedated; (ii) for the duration of the
+    sedation window, using the latest available GCS value prior to the sedation
+    window; (iii) ignoring the sedation information and using the raw GCS values
+    as recorded in the databases, and two approaches to sedation: (a) medication
+    based; (b) RASS based; (c) ignoring sedation. Our findings show that raw GCS
+    values with sedation status not taken into account achieve the highest
+    marginal AUC for predicting mortality. However, sedation-adjusted values
+    (setting the GCS score to 15 based on administration of sedative drugs) are
+    used by the data-driven predictive Sepsis SOFA score.}
 \end{figure}
 
 %\newpage
@@ -87,37 +98,108 @@
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{../figures/otp-wo-lactate.png}
-    \caption{Over-time performance of SOFA 2.0 and SOFA scores, with the metabolic component of SOFA 2.0 removed. The two scores are evaluated in terms of area under receiver operator characteristic (AUROC) and area under precision recall (AUPRC) for predicting mortality, during the first day of ICU stay, in time steps of 2 hours, with the metabolic component of the SOFA 2.0 score not included. The 95\% confidence intervals for the areas under the curve, obtained using bootstrap, are plotted in every subplot. SOFA 2.0 still outperforms SOFA in each metric, time point and dataset.}
+    \caption{Over-time performance of the data-driven Sepsis SOFA and SOFA scores,
+    with the metabolic component of the new score removed. The two scores are
+    evaluated in terms of area under receiver operator characteristic (AUROC)
+    and area under precision recall (AUPRC) for predicting mortality, during the
+    first day of ICU stay, in time steps of 2 hours, with the metabolic component
+    of Sepsis SOFA not included. The 95\% confidence intervals for the areas
+    under the curve, obtained using bootstrap, are plotted in every subplot. The
+    new score still outperforms SOFA in each metric, time point and dataset.}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{../figures/otp-4days.png}
+    \caption{Over-time performance of the data-driven Sepsis SOFA and SOFA scores,
+    in the cohort of patients who received antibiotics for at least 4 consecutive days.
+    The two scores are evaluated in terms of area under receiver operator
+    characteristic (AUROC) and area under precision recall (AUPRC) for predicting
+    mortality, during the first day of ICU stay, in time steps of 2 hours, with
+    the metabolic component of Sepsis SOFA not included. The
+    95\% confidence intervals for the areas under the curve, obtained using
+    bootstrap, are plotted in every subplot. The new score still outperforms
+    SOFA in each metric, time point and dataset.}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{../figures/otp-lmic.png}
-    \caption{Over-time performance of SOFA 2.0-LMIC and SOFA scores. The two scores are evaluated in terms of area under receiver operator characteristic (AUROC) and area under precision recall (AUPRC) for predicting mortality, during the first day of ICU stay, in time steps of 2 hours, with the metabolic component of SOFA 2.0-LMIC based on base excess, and the respiratory component on SpO2/FiO2 ratio. The 95\% confidence intervals for the areas under the curve, obtained using bootstrap, are plotted in every subplot.}
+    \caption{Over-time performance of the data-driven Sepsis SOFA for low- and
+    middle-income countries and SOFA. The two scores are evaluated in terms of
+    area under receiver operator characteristic (AUROC) and area under precision
+    recall (AUPRC) for predicting mortality, during the first day of ICU stay,
+    in time steps of 2 hours, with the metabolic component of the Sepsis SOFA score
+    based on bicarbonate, and the respiratory component on SpO2/FiO2 ratio. The
+    95\% confidence intervals for the areas under the curve, obtained using
+    bootstrap, are plotted in every subplot.}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics[width=0.87\textwidth]{../figures/roc-grid.png}
-    \caption{Performance of SOFA 2.0 and SOFA scores at 24 hours into ICU. Each component of SOFA 2.0 is compared to the corresponding component of SOFA, by plotting the receiver operator characteristic (ROC) curve at 24 hours into ICU stay. Each row of the figure corresponds to an organ failure category (cardiovascular, coagulation, hepatic, immunological, metabolic, renal, respiratory) and each row corresponds to a dataset. SOFA 2.0 outperforms SOFA in almost every component and dataset.}
+    \caption{Performance of the data-driven Sepsis SOFA and SOFA scores at 24
+    hours into ICU. Each component of Sepsis SOFA is compared to the corresponding
+    component of SOFA, by plotting the receiver operator characteristic (ROC)
+    curve at 24 hours into ICU stay. Each row of the figure corresponds to an
+    organ failure category (cardiovascular, coagulation, hepatic,
+    metabolic, renal, respiratory) and each row corresponds to a dataset.
+    Sepsis SOFA outperforms SOFA in almost every component and dataset.}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics[width=0.85\textwidth]{../figures/mortality-barplots.png}
-    \caption{Mortality barplots for each component and dataset. For each organ failure component, we divide the study cohort into groups of patients who had a SOFA 2.0 score of 0, 1, 2, 3, or 4 at 24 hours into ICU, and calculate the mortality rate in each group. The same was repeated for all the values and components of the SOFA score. The mortality rate for each group, dataset and component are presented as barplots, where each row of the figure corresponds to an organ failure category (cardiovascular, coagulation, hepatic, immunological, metabolic, renal, respiratory) and each row corresponds to a dataset.}
+    \caption{Mortality barplots for each component and dataset. For each organ
+    failure component, we divide the study cohort into groups of patients who
+    had a Sepsis SOFA score of 0, 1, 2, 3, or 4 at 24 hours into ICU, and
+    calculate the mortality rate in each group. The same was repeated for all
+    the values and components of the SOFA score. The mortality rate for each
+    group, dataset and component are presented as barplots, where each row of
+    the figure corresponds to an organ failure category (cardiovascular,
+    coagulation, hepatic, metabolic, renal, respiratory) and each row corresponds
+    to a dataset.}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{../figures/score-multiplicity.png}
+    \caption{Performance of predictive scores in the ablation analysis.
+    The average AUROC at 24 hours into ICU stay on the validation set is reported,
+    together with its 95\% confidence interval.
+    The score with 0 forbidden features is the optimal score presented in Table 2.
+    For each of the six domains (excluding neurological),
+    we reconstructed a predictive score with the most predictive feature forbidden
+    (yielding six scores with 1 forbidden feature).
+    Then, we listed any combination of 2 most predictive features, and constructed
+    scores which did not use these features. This was continued until, finally,
+    we constructed a score that was forbidden to use any of the features appearing
+    in the original optimal score in Table 2. The figure indicates that even
+    removing several of the optimal features still yields a relatively good predictive
+    performance of the score.}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{../figures/calib-grid-dose.png}
-    \caption{Calibration curves of SOFA 2.0 across development (vertical) and validation (horizontal) datasets. For each development cohort (MIMIC-IV, AUMC), we compute the SOFA 2.0 values. Based on these, we fit a logistic regression model (death ~ SOFA 2.0 + Intercept), and the fitted probabilities are used as the predicted probabilities. The fitted probabilities are then assessed for calibration on the validation cohorts (MIMIC-IV, AUMC, SICdb).}
+    \caption{Calibration curves of Sepsis SOFA across development
+    (vertical) and validation (horizontal) datasets. For each development cohort
+    (MIMIC-IV, AUMC), we compute the Sepsis SOFA values. Based on
+    these, we fit a logistic regression model (death ~ Sepsis SOFA +
+    Intercept), and the fitted probabilities are used as predicted probabilities.
+    The fitted probabilities are then assessed for calibration on the validation
+    cohorts (MIMIC-IV, AUMC, SICdb).}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{../figures/calib-grid-sofa.png}
-    \caption{Calibration curves of SOFA across development (vertical) and validation (horizontal) datasets. For each development cohort (MIMIC-IV, AUMC), we compute the SOFA values. Based on these, we fit a logistic regression model (death ~ SOFA + Intercept), and the fitted probabilities are used as the predicted probabilities. The fitted probabilities are then assessed for calibration on the validation cohorts (MIMIC-IV, AUMC, SICdb).}
+    \caption{Calibration curves of SOFA across development (vertical) and
+    validation (horizontal) datasets. For each development cohort (MIMIC-IV, AUMC),
+    we compute the SOFA values. Based on these, we fit a logistic regression
+    model (death ~ SOFA + Intercept), and the fitted probabilities are used as
+    the predicted probabilities. The fitted probabilities are then assessed for
+    calibration on the validation cohorts (MIMIC-IV, AUMC, SICdb).}
 \end{figure}
 
 \end{document}

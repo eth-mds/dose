@@ -3,11 +3,6 @@ root <- rprojroot::find_root(".gitignore")
 r_dir <- file.path(root, "r")
 invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 
-compute_auc <- function(out, pred) {
-
-  PRROC::roc.curve(scores.class0 = pred, weights.class0 = as.integer(out))$auc
-}
-
 be_vs_lact <- function(src) {
 
   pids <- si_cohort(src)

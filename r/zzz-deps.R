@@ -13,3 +13,5 @@ library(officer)
 library(parallel)
 library(flextable)
 library(stringr)
+
+Sys.setenv(SCORE_NAME = "Sepsis SOFA")

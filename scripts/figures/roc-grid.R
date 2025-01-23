@@ -5,6 +5,7 @@ invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 
 cfg <- get_config("features", config_dir())
 score <- config("dose")
+set.seed(2024)
 
 src <- c("miiv", "aumc", "sic")
 fx_tim <- hours(24L)
@@ -32,7 +33,7 @@ efig1 <- ggplot(subset(fxt_plots, curvetype == "ROC"), aes(x = x, y = y)) +
   facet_grid(rows = vars(component), cols = vars(source)) +
   theme_bw() +
   theme(legend.position = "bottom", legend.title = element_blank()) +
-  scale_color_discrete(labels = c("SOFA 2.0", "SOFA")) +
+  scale_color_discrete(labels = c(Sys.getenv("SCORE_NAME"), "SOFA")) +
   xlab("1 - Specificity") +
   ylab("Sensitivity")
 

@@ -32,6 +32,9 @@ source(file.path(root, "scripts", "tables", "variables-table.R"))
 # AUROCs and AUPRCs
 source(file.path(root, "scripts", "tables", "aucs.R"))
 
+# variable missingness table
+source(file.path(root, "scripts", "tables", "missingness-table.R"))
+
 ###' * Figures *
 
 # over time performance
@@ -45,6 +48,9 @@ source(file.path(root, "scripts", "figures", "gcs-options.R"))
 # comparison of scores when lactate is removed
 source(file.path(root, "scripts", "figures", "over-time-add.R"))
 
+# comparison of scores for patients with >= 4 days of antibiotics
+source(file.path(root, "scripts", "figures", "over-time-mabx.R"))
+
 # ROC curves across different datasets and systems
 source(file.path(root, "scripts", "figures", "roc-grid.R"))
 
@@ -53,6 +59,9 @@ source(file.path(root, "scripts", "figures", "mortality-barplots.R")) # new
 
 # calibration of SOFA, SOFA 2.0
 source(file.path(root, "scripts", "figures", "calibration.R")) # new
+
+# impact of feature removal on performance
+source(file.path(root, "scripts", "explore", "ablation.R")) # new
 
 ### knit supplementary figures to a single file
 source(file.path(root, "scripts", "knit-supplement.R")) # new

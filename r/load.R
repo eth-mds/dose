@@ -18,7 +18,7 @@
 #' a single or multiple time windows were specified.
 #'
 load_data <- function(src, cfg, lwr, upr, cohort = si_cohort(src), enc = TRUE,
-                      impute_vals = TRUE) {
+                      impute_vals = TRUE, dat_nm = "dat") {
 
   load_win <- function(lwr, upr, cfg, dat, out, enc, impute_vals) {
 
@@ -45,7 +45,8 @@ load_data <- function(src, cfg, lwr, upr, cohort = si_cohort(src), enc = TRUE,
   }
 
   root <- rprojroot::find_root(".git/index")
-  dat_fil <- file.path(root, "dose-dat", paste0("dat_", src, ".RData"))
+  dat_loc <- file.path(root, "dose-dat")
+  dat_fil <- file.path(dat_loc, paste0(dat_nm, "_", src, ".RData"))
   if (file.exists(dat_fil)) {
     load(dat_fil)
   } else {
@@ -123,9 +124,10 @@ preproc <- function(dat, cfg, win_lwr = hours(-Inf),
   res <- dat[(get(index_var(dat)) >= win_lwr) & (get(index_var(dat)) <= win_upr), ]
   counts <- colSums(!is.na(res))
 
-  med_iqr <- round(colQuantiles(as.matrix(res[, -c(1, 2)]),
+  med_iqr <- round(colQuantiles(as.matrix(res[, -c(1, 2), drop = FALSE]),
                                 probs = c(0.5, 0.25, 0.75),
                                 na.rm = TRUE), digits = 1L)
+  med_iqr <- matrix(med_iqr, ncol = 3)
   med_iqr <- paste0(med_iqr[, 1], " [", med_iqr[, 2], ", ", med_iqr[, 3], "]")
   res <- res[, Map(do_call, agg, .SD), .SDcols = names(agg), by = c(id_vars(dat))]
   if (impute_vals) {

@@ -4,15 +4,15 @@ proj_root <- function() rprojroot::find_root(".git/index")
 config_dir <- function() file.path(proj_root(), "config")
 
 aggreg_fun <- function(cfg, inc = "max", dec = "min", type = "vec") {
-  
+
   if (type == "list") {
     dir <- lapply(cfg, `[[`, "direction")
     res <- lapply(dir, function(x) if (x == "increasing") inc else dec)
     names(res) <- names(cfg)
     res[grep("^gcs", names(res))] <- list(NULL)
-    return(res) 
+    return(res)
   }
-  
+
   dir <- vapply(cfg, `[[`, character(1L), "direction")
   res <- ifelse(dir == "increasing", inc, dec)
 }
@@ -41,17 +41,22 @@ score2table <- function(score) {
                        function(x) paste0(dict[[x]][["full_name"]], " (",
                                           dict[[x]][["unit"]][1], ")"),
                        character(1L))
+
+  category <- vapply(attr(score, "concept"), function(x) dict[[x]][["category"]],
+                     character(1L))
+
   tbl <- data.frame(
+    Component = scwrap(category),
     Feature = full_names, Dir = attr(score, "right"),
     Thresh = attr(score, "threshold"), Points = score, stringsAsFactors = FALSE
   )
   tbl <- do.call(rbind, lapply(split(tbl, tbl[["Feature"]]), flip_sum))
   tbl[["Thresh"]] <- paste(ifelse(tbl[["Dir"]], "≥", "<"),
                            tbl[["Thresh"]])
-  
+
   names(tbl)[names(tbl) == "Thresh"] <- "Threshold"
-  res <- autofit(flextable(tbl[, c("Feature", "Threshold", "Points")]))
-  
+  res <- autofit(flextable(tbl[, c("Component", "Feature", "Threshold", "Points")]))
+
   if (any(grepl("^bun", names(score[score > 0])))) {
     footnotes <- c(
       paste0("Blood Urea Nitrogen conversion factor from mg/dL ",
@@ -64,7 +69,7 @@ score2table <- function(score) {
       "NEQ norepinephrine equivalents",
       "PaO2 partial arterial oxygen pressure"
     )
-    res <- footnote(res, i = 1, j = rep(1, length(footnotes)), 
+    res <- footnote(res, i = 1, j = rep(1, length(footnotes)),
                     value = as_paragraph(footnotes),
                     ref_symbols = rep("", length(footnotes)),
                     part = "header", inline = TRUE)
@@ -72,6 +77,7 @@ score2table <- function(score) {
   res <- fontsize(res, size = 10)
   for (i in seq_along(unique(tbl$Feature))) {
     res <- merge_at(res, i = (i-1)*4 + 1:4, j = 1)
+    res <- merge_at(res, i = (i-1)*4 + 1:4, j = 2)
   }
   hline(res, i = 4 * seq_along(unique(tbl$Feature)))
 }
@@ -127,9 +133,9 @@ in_icu <- function(pids, src, tim) {
     save(tod, file = file.path(root, "dose-dat", paste0("death_", src, ".RData")))
   }
   wins <- merge(wins, tod, all.x = TRUE)
-  
+
   wins[, end := pmin(end, get(index_var(wins)), na.rm = TRUE)]
-  
+
   id_col(wins[start <= tim & end >= tim])
 }
 
@@ -176,11 +182,11 @@ load_cts <- function(src, cfg, lwr, upr, cohort = si_cohort(src),
 }
 
 
-df_to_word <- function(df, path, caption = "", landscape = FALSE, 
+df_to_word <- function(df, path, caption = "", landscape = FALSE,
                        footnotes = NULL, header = NULL, fix_width = NULL, ...) {
-  
+
   ft <- flextable(df)
-  
+
   if (!is.null(header)) {
     # start with no header
     ft <- delete_part(ft, part = "header")
@@ -188,24 +194,24 @@ df_to_word <- function(df, path, caption = "", landscape = FALSE,
     ft <- add_header(ft, values = header, top = TRUE)
     ft <- merge_h(ft, part = "header")
   }
-  
+
   ft <- set_caption(ft, caption = caption)
   ft <- font(ft, fontname = "Calibri (Headings)", part = "all")
   ft <- fontsize(ft, size = 10, part = "all")
-  
+
   ft <- autofit(ft)
   if (!is.null(fix_width)) ft <- fit_to_width(ft, fix_width)
   # for (i in seq_along(fix_width)) {
   #   ft <- width(ft, j = fix_width[[i]][1], width = fix_width[[i]][2])
   # }
-  
+
   if (!is.null(footnotes)) {
     ft <- footnote(ft, i = 1, j = rep(1, length(footnotes)),
                    value = as_paragraph(footnotes),
                    ref_symbols = rep("", length(footnotes)),
                    part = "header", inline = TRUE)
   }
-  
+
   my_doc <- read_docx()
 
   my_doc <- body_add_flextable(my_doc, value = ft)

@@ -1,5 +1,6 @@
 #' * auc_optimizer finds the best marginal score *
-auc_optimizer <- function(train_data, cfg, hard_thresh = 0, ntry = 1000, ...) {
+auc_optimizer <- function(train_data, cfg, hard_thresh = 0, ntry = 1000,
+                          forbiden = NULL, ...) {
 
   systems <- c("cardio", "liver", "cns", "coag", "renal", "resp", "metabolic")
   best <- lapply(systems, function(x) list(auc = 0.5))
@@ -14,6 +15,8 @@ auc_optimizer <- function(train_data, cfg, hard_thresh = 0, ntry = 1000, ...) {
         components <- append(components, names(cfg)[i])
 
       for (cp in components) {
+
+        if (is.element(cp, forbiden)) next
 
         # pick the column names corresponding to feature cp
         cp.idx <- grep(paste0("^", cp, "\\."), names(train_data[[1]]))
@@ -50,11 +53,8 @@ auc_optimizer <- function(train_data, cfg, hard_thresh = 0, ntry = 1000, ...) {
             best[[sys]][["cols"]] <- colnames(mat[[1]])[cpt[, k]]
 
           }
-
         }
-
       }
-
   }
 
   incl <- vapply(best, function(x) x$auc == 0.5, logical(1L))
@@ -71,7 +71,7 @@ auc_optimizer <- function(train_data, cfg, hard_thresh = 0, ntry = 1000, ...) {
 running_decorr <- function(train_data, cfg, score, test_data = NULL,
                            lambda = 1, thresh = .75, output = "score",
                            n_try = 1000, max_epoch = 50,
-                           dev_country = FALSE,
+                           dev_country = FALSE, forbiden = NULL,
                            accept = \(marg, jnt) marg > 0 ||
                              jnt * length(score) > abs(marg),
                            n_cores = get_cores()) {
@@ -133,7 +133,7 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
 
   if (dev_country) {
 
-    sys_components <- list(metabolic = "be", resp = "safi")
+    sys_components <- list(metabolic = "bicar", resp = "spfi")
     max_epoch <- 2L
   } else {
 
@@ -154,6 +154,7 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
     message("epoch ", epoch)
 
     change <- FALSE
+
     # iterate over components
     for (sys in names(score)) {
 
@@ -178,7 +179,10 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
         }
       }
 
+      # run over all possible features within an organ system
       for (cp in sys_components[[sys]]) {
+
+        if (is.element(cp, forbiden)) next
 
         message("    ", format(cp, width = max(nchar(unlist(sys_components)))),
                 " ", appendLF = FALSE)
@@ -200,9 +204,12 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
 
             for (j in seq_along(train_data)) {
 
+              # get the score representation with organ system removed
               rest <- unlist(score[-which(names(score) == sys)])
 
+              # add the candidate feature for the organ system back in
               auc_all <- auc_calc(train_data[[j]], c(rest, cp_samp[, k]))
+              # compute the marginal AUC of the candidate feature
               auc_cmp <- auc_calc(train_data[[j]], cp_samp[, k])
 
               if (is.list(thresh) && auc_cmp < prop_keep[[sys]][[j]]) {
@@ -210,6 +217,7 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
                 break
               }
 
+              # compute weighted objective
               obj <- lambda * auc_all + (1 - lambda) * auc_cmp
               obj_sum <- obj_sum + obj
             }
@@ -217,10 +225,12 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
           }, mc.cores = n_cores()
         )
 
+        # run over all the investigated updates
         for (k in seq_len(n_try)) {
 
           obj_sum <- par_grd[[k]]
 
+          # if improvement spotted, update the score
           if (obj_sum > best_sum) {
 
             marg <- aucs_calc(train_data, cp_samp[, k]) -
@@ -244,11 +254,12 @@ running_decorr <- function(train_data, cfg, score, test_data = NULL,
 
         if (best_sum > run_obj) {
 
-          # new - old
+          # compute the improvement of (new - old)
           marg <- aucs_calc(train_data, best_update) -
             aucs_calc(train_data, score[[sys]])
           jnt <- (best_sum - run_obj) / length(train_data)
 
+          # check if the improvement for the epoch is accepted
           if (accept(marg, jnt)) {
 
             run_obj <- best_sum

@@ -23,9 +23,10 @@ score <- lapply(best, `[[`, "cols")
 config("best-marg", score)
 
 # train overall optimal score
-decorr_score <- running_decorr(train, cfg, config("best-marg"))
+decorr_score <- running_decorr(train, cfg, score)
 config("dose", decorr_score)
 
 # replace (lactate, pafi) with (base excess, spfi)
-decorr_score_II <- running_decorr(train, cfg, config("dose"), dev_country = TRUE)
+decorr_score_II <- running_decorr(train, cfg, decorr_score,
+                                  dev_country = TRUE)
 config("dose-II", decorr_score_II)

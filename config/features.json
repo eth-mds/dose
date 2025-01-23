@@ -430,24 +430,6 @@
     "full_name": ["PaO2/FiO2"],
     "unit": ["mmHg"]
   },
-  "pafi_beta100": {
-    "direction": ["decreasing"],
-    "lower": [0],
-    "upper": [400],
-    "step": [50],
-    "category": ["resp"],
-    "full_name": ["PaO2/FiO2 - 100 x Vent"],
-    "unit": ["mmHg"]
-  },
-  "pafi_beta50": {
-    "direction": ["decreasing"],
-    "lower": [0],
-    "upper": [400],
-    "step": [50],
-    "category": ["resp"],
-    "full_name": ["PaO2/FiO2 - 50 x Vent"],
-    "unit": ["mmHg"]
-  },
   "spfi": {
     "direction": ["decreasing"],
     "lower": [50],
@@ -455,24 +437,6 @@
     "step": [50],
     "category": ["resp"],
     "full_name": ["SpO2/FiO2"],
-    "unit": ["%"]
-  },
-  "spfi_beta100": {
-    "direction": ["decreasing"],
-    "lower": [0],
-    "upper": [400],
-    "step": [50],
-    "category": ["resp"],
-    "full_name": ["SpO2/FiO2 - 100 x Vent"],
-    "unit": ["%"]
-  },
-  "spfi_beta50": {
-    "direction": ["decreasing"],
-    "lower": [0],
-    "upper": [400],
-    "step": [50],
-    "category": ["resp"],
-    "full_name": ["SpO2/FiO2 - 50 x Vent"],
     "unit": ["%"]
   },
   "aptt_inr": {

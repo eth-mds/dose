@@ -3,8 +3,10 @@ root <- rprojroot::find_root(".git/index")
 r_dir <- file.path(root, "r")
 invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 
+src <- c("miiv", "aumc", "sic")
 cfg <- config("features")
 score <- config("dose")
+set.seed(2024)
 
 dat <- lapply(
   src, function(data_src) {
@@ -41,8 +43,13 @@ plt <- lapply(
 )
 
 plt <- Reduce(rbind, plt)
-plt[, pmin := p - 1.96 * sqrt(p * (1 - p)) / sqrt(n)]
-plt[, pmax := p + 1.96 * sqrt(p * (1 - p)) / sqrt(n)]
+
+# plt[, pmin := p - 1.96 * sqrt(p * (1 - p)) / sqrt(n)]
+# plt[, pmax := p + 1.96 * sqrt(p * (1 - p)) / sqrt(n)]
+plt[, pmin := bin_ci(p, n, lower = TRUE)]
+plt[, pmax := bin_ci(p, n, lower = FALSE)]
+
+# plt[abs(pmin - pmin_new) > 0.01]
 
 ggplot(plt, aes(x = value, y = p, fill = str_to_upper(method))) +
   geom_col(color = "black", position = position_dodge()) +
@@ -51,7 +58,7 @@ ggplot(plt, aes(x = value, y = p, fill = str_to_upper(method))) +
   theme_bw() +
   scale_y_continuous(labels = scales::percent) +
   scale_fill_discrete(name = "Score",
-                      labels = c("SOFA 2.0", "SOFA")) +
+                      labels = c(Sys.getenv("SCORE_NAME"), "SOFA")) +
   facet_grid(rows = vars(scwrap(component)), cols = vars(srcwrap(source)),
              scales = "free_y") +
   theme(legend.position = "bottom") +

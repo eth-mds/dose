@@ -1,4 +1,51 @@
 
+compute_auc <- function(out, pred, boot = FALSE) {
+
+  if (boot) {
+
+    return(
+      vapply(
+        1:100, function(i) {
+          b_idx <- sample(length(out), replace = TRUE)
+          compute_auc(out[b_idx], pred[b_idx], boot = FALSE)
+        }, numeric(1L)
+      )
+    )
+  }
+
+  PRROC::roc.curve(scores.class0 = pred, weights.class0 = as.integer(out))$auc
+}
+
+bin_ci <- function(p, n, conf_level = 0.95, lower = TRUE) {
+  # Check inputs
+  if (length(p) != length(n)) stop("Vectors p and n must be of equal length.")
+
+  # Initialize bounds
+  bounds <- numeric(length(p))
+
+  # Critical value for the normal approximation
+  z <- qnorm((1 + conf_level) / 2)
+
+  for (i in seq_along(p)) {
+    if (n[i] >= 30 && n[i] * p[i] >= 5 && n[i] * (1 - p[i]) >= 5) {
+      # Normal approximation
+      se <- sqrt(p[i] * (1 - p[i]) / n[i])
+      bounds[i] <- if (lower) p[i] - z * se else p[i] + z * se
+    } else {
+      # Exact binomial confidence intervals
+      alpha <- 1 - conf_level
+      if (lower) {
+        bounds[i] <- qbeta(alpha / 2, n[i] * p[i], n[i] * (1 - p[i]) + 1)
+      } else {
+        bounds[i] <- qbeta(1 - alpha / 2, n[i] * p[i] + 1, n[i] * (1 - p[i]))
+      }
+    }
+  }
+
+  return(bounds)
+}
+
+
 expit <- function(x) exp(x) / (1 + exp(x))
 
 srcwrap <- function(src) {

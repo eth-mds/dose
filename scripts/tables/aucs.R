@@ -6,6 +6,7 @@ invisible(lapply(list.files(r_dir, full.names = TRUE), source))
 cfg <- get_config("features", config_dir())
 score <- config("score")
 src <- c("miiv", "aumc", "sic")
+set.seed(2024)
 
 fxt_dev <- lapply(
   src, function(data_src) {
@@ -86,13 +87,13 @@ ft_compute <- function(aucs, src, type = "fx_roc") {
   ft <- set_caption(ft,
                     caption = ifelse(type == "fx_roc",
                                      paste0(
-                                       "eTable 2A. Area under receiver operator ",
+                                       "eTable 4A. Area under receiver operator ",
                                        "characteristic (AUROC) per component ",
                                        "and dataset, for validation and ",
                                        "development cohorts"
                                      ),
                                      paste0(
-                                       "eTable 2B. Area under precision recall ",
+                                       "eTable 4B. Area under precision recall ",
                                        "(AUPRC) per component ",
                                        "and dataset, for validation and ",
                                        "development cohorts"

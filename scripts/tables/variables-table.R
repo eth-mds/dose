@@ -57,7 +57,14 @@ col_ord <- c(
   grep("Median", names(res), value = TRUE), "Category"
 )
 
+# reorder by AUROC
 res <- res[order(res$AUROC.x + res$AUROC.y, decreasing = TRUE), col_ord]
+# reorder by Category
+res$Category <- factor(res$Category,
+                       levels = c("Hepatic", "Renal", "CNS", "Metabolic",
+                                  "Cardio", "Respiratory", "Coagulation", "-"))
+res <- res[order(res$Category), ]
+res$Category <- as.character(res$Category)
 hdr <- as.list(gsub("\\.[xy]", "", names(res)))
 names(hdr) <- names(res)
 

@@ -24,4 +24,4 @@ for (i in seq_along(src)) {
 
 fig1 <- otp_fig(Reduce(rbind, evl))
 ggsave(file.path(root, "figures", "Figure1.tiff"), fig1,
-       width = 12, height = 7, type = "cairo", compression = "lzw")
+       width = 12, height = 7, compression = "lzw")

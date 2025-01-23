@@ -13,14 +13,13 @@ dose_otp <- function(test, times, dose, sofa, cohort, data_src) {
   )]
 
   cbind(aucs, Dataset = srcwrap(data_src))
-
 }
 
 otp_fig <- function(df) {
 
   df$curvetypes <- factor(df$curvetypes, levels = c("ROC", "PRC"))
-  df$type <- ifelse(df$type == "DOSE", "SOFA 2.0", "SOFA")
-  df$type <- factor(df$type, levels = c("SOFA 2.0", "SOFA"))
+  df$type <- ifelse(df$type == "DOSE", Sys.getenv("SCORE_NAME"), "SOFA")
+  df$type <- factor(df$type, levels = c(Sys.getenv("SCORE_NAME"), "SOFA"))
 
   ggplot(df, aes(x = time, y = mean, color = type, fill = type)) +
     geom_line() +
@@ -35,7 +34,8 @@ otp_fig <- function(df) {
     scale_fill_discrete(name = "Score")
 }
 
-dose_fxtp <- function(test_24, score, data_src, nboot = 500) {
+dose_fxtp <- function(test_24, score, data_src, nboot = 500,
+                      methods = c("dose", "sofa"), eval_obj = FALSE) {
 
   test_24[, dose := rowSums(test_24[, unlist(score), with = FALSE])]
   fx_plot <- list()
@@ -47,7 +47,6 @@ dose_fxtp <- function(test_24, score, data_src, nboot = 500) {
 
     scores <- list()
     labels <- list()
-    methods <- c("dose", "sofa")
 
     for(bt in 1:nboot) {
 
@@ -64,6 +63,8 @@ dose_fxtp <- function(test_24, score, data_src, nboot = 500) {
 
     eval <- evalmod(scores = scores, labels = labels, dsids = dsids,
                     modnames = modnames)
+
+    if (eval_obj) return(eval)
 
     aurocs <- auc(eval)$aucs[c(TRUE, FALSE)]
     auprcs <- auc(eval)$aucs[c(FALSE, TRUE)]
