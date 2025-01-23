@@ -6,7 +6,7 @@
 This repository contains all the code that was used to develop the
 data-driven Sepsis SOFA score, in the paper "
 A Framework and Analytical Exploration for a Data-Driven Update of the Sequential 
-Organ Failure Assessment (SOFA) Score in Sepsis" by D. Plecko, N. Bennett, I.F. Ukor,
+Organ Failure Assessment (SOFA) Score in Sepsis" by D. Plecko, N. Bennett, I.F. Ukor, N. Rodemund,
 A. Serpa-Neto, P. Bühlmann.
 
 <div align="center">
